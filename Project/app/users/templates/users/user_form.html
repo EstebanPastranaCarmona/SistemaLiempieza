@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Usuario{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+
+        <!-- Breadcrumb -->
+        <nav class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'users:dashboard' %}" class="text-decoration-none">
+                        <i class="bi bi-house-fill"></i>
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'users:user_list' %}" class="text-decoration-none">Usuarios</a>
+                </li>
+                <li class="breadcrumb-item active">{{ action }}</li>
+            </ol>
+        </nav>
+
+        <div class="card form-card">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-person-fill-gear fs-5"></i>
+                <span class="fw-600">{{ action }} Usuario</span>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Fila nombre y apellido -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">
+                                <i class="bi bi-person me-1"></i>Nombre
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.first_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">
+                                <i class="bi bi-person me-1"></i>Apellido
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.last_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Usuario -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-at me-1"></i>Usuario
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ form.username.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Correo -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-envelope me-1"></i>Correo electrónico
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ form.email.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Contraseña solo en crear -->
+                    {% if form.password %}
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-lock-fill me-1"></i>Contraseña
+                        </label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ form.password.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Rol -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-shield-fill me-1"></i>Rol
+                        </label>
+                        {{ form.rol }}
+                        {% if form.rol.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ form.rol.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="bi bi-check-lg me-1"></i>Guardar
+                        </button>
+                        <a href="{% url 'users:user_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Cancelar
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
