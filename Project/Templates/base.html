@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}LimpiaControl{% endblock %} | LimpiaControl</title>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-icons.min.css' %}">
+
+    <style>
+        :root {
+            --lc-primary:     #0d47a1;    /* azul profundo */
+            --lc-secondary:   #1976d2;    /* azul fuerte */
+            --lc-accent:      #00b0ff;    /* azul cyan */
+            --lc-bg-dark:     #1a237e;    /* fondo oscuro */
+            --lc-bg-card:     #263da3;    /* cards */
+            --lc-bg-hover:    #3949ab;    /* hover */
+            --lc-text-light:  #ffffff;
+            --lc-text-muted:  #bbdefb;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(135deg, var(--lc-bg-dark) 0%, #283593 100%);
+            min-height: 100vh;
+            color: var(--lc-text-light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Navbar */
+        .navbar-lc {
+            background: rgba(13, 71, 161, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .navbar-lc .navbar-brand {
+            color: var(--lc-accent) !important;
+            font-weight: 700;
+            font-size: 1.3rem;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Contenedor principal */
+        .main-container {
+            min-height: calc(100vh - 70px);
+            padding: 2rem 0;
+        }
+
+        /* Header de página */
+        .page-header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Cards del dashboard */
+        .dashboard-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-color: var(--lc-accent);
+        }
+        .dashboard-card .card-icon {
+            background: linear-gradient(135deg, var(--lc-accent), #42a5f5);
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+        }
+        .dashboard-card .card-icon i {
+            font-size: 1.8rem;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Tablas */
+        .table-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            overflow: hidden;
+        }
+        .table-dark thead th {
+            background: linear-gradient(135deg, var(--lc-primary), var(--lc-secondary));
+            border: none;
+            color: white;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(255,255,255,0.15);
+            transform: scale(1.01);
+        }
+
+        /* Formularios */
+        .form-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+        }
+        .form-card .card-header {
+            background: linear-gradient(135deg, var(--lc-primary), var(--lc-secondary));
+            color: white;
+            border-radius: 16px 16px 0 0;
+            padding: 1.5rem 2rem;
+        }
+        .form-label {
+            color: var(--lc-text-light);
+            font-weight: 500;
+        }
+        .form-control, .form-select {
+            background: rgba(255,255,255,0.9);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+        .form-control:focus, .form-select:focus {
+            background: white;
+            border-color: var(--lc-accent);
+            box-shadow: 0 0 0 0.25rem rgba(0,176,255,0.25);
+        }
+
+        /* Botones */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--lc-accent), #42a5f5);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,176,255,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,176,255,0.4);
+        }
+        .btn-outline-secondary {
+            border-color: rgba(255,255,255,0.3);
+            color: var(--lc-text-light);
+        }
+        .btn-outline-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--lc-accent);
+            color: var(--lc-accent);
+        }
+
+        /* Alertas */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            backdrop-filter: blur(10px);
+        }
+        .alert-success { background: rgba(76,175,80,0.2); border-left: 4px solid #4caf50; }
+        .alert-danger { background: rgba(244,67,54,0.2); border-left: 4px solid #f44336; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container { padding: 1rem; }
+            .page-header { padding: 1rem; margin-bottom: 1rem; }
+        }
+    </style>
+
+    {% block custom_styles %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-lc fixed-top px-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'users:dashboard' %}">
+                <i class="bi bi-droplet-half"></i>
+                LimpiaControl
+            </a>
+            
+            <div class="navbar-nav ms-auto align-items-center">
+                <span class="navbar-text me-3">
+                    {{ user.get_full_name|default:user.username }}
+                    <span class="badge rounded-pill ms-2 px-2 py-1"
+                          style="background: rgba(0,176,255,0.2); color: var(--lc-accent);">
+                        {{ user.get_rol }}
+                    </span>
+                </span>
+                <a class="nav-link" href="{% url 'users:logout' %}">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        {% block body %}{% endblock %}
+    </div>
+
+  <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>

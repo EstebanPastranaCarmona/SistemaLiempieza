@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Usuarios{% endblock %}
+
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4><i class="bi bi-people-fill me-2"></i>{{ title|default:"Usuarios Activos" }}</h4>
+        <small class="opacity-75">Gestión de accesos y roles del personal</small>
+    </div>
+    <a href="{% url 'users:dashboard' %}" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+
+    <!-- Filtro por rol -->
+    <form method="GET" class="d-flex gap-2">
+        <input type="hidden" name="active" value="{{ request.GET.active|default:'true' }}">
+        <select name="rol" class="form-select" onchange="this.form.submit()"
+                style="background: rgba(255,255,255,0.08); border: 1px solid var(--lc-border);
+                       color: rgb(0, 0, 0); border-radius: 10px; width: auto;">
+            <option value="" style="background: var(--lc-dark);">Todos los roles</option>
+            {% for grupo in grupos %}
+                <option value="{{ grupo.id }}" style="background: var(--lc-dark);"
+                        {% if rol_filter == grupo.id|stringformat:"s" %}selected{% endif %}>
+                    {{ grupo.name }}
+                </option>
+            {% endfor %}
+        </select>
+        {% if rol_filter %}
+        <a href="?active={{ request.GET.active|default:'true' }}" class="btn-lc-outline">
+            <i class="bi bi-x-lg"></i>
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- Tabs y botón nuevo -->
+    <div class="ms-auto d-flex gap-2">
+        <a href="?active=true" class="btn-lc-outline"
+           style="{% if active_filter %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+            <i class="bi bi-person-check-fill me-1"></i>Activos
+        </a>
+        <a href="?active=false" class="btn-lc-outline"
+           style="{% if not active_filter %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+            <i class="bi bi-person-dash-fill me-1"></i>Inactivos
+        </a>
+        <a href="{% url 'users:user_create' %}" class="btn-lc">
+            <i class="bi bi-person-plus-fill me-1"></i>Nuevo
+        </a>
+    </div>
+
+</div>
+
+
+
+<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+    <table class="table table-lc table-hover mb-0">
+        <thead>
+            <tr>
+                <th><i class="bi bi-person me-1"></i>Usuario</th>
+                <th><i class="bi bi-card-text me-1"></i>Nombre</th>
+                <th><i class="bi bi-envelope me-1"></i>Correo</th>
+                <th><i class="bi bi-shield-fill me-1"></i>Rol</th>
+                <th><i class="bi bi-circle-fill me-1"></i>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td class="fw-400">{{ u.username }}</td>
+                <td>{{ u.get_full_name|default:"—" }}</td>
+                <td>{{ u.email|default:"—" }}</td>
+                <td>
+                    {% with u.groups.first as group %}
+                        {% if group %}
+                            <span class="badge rounded-pill"
+                                  style="background-color: var(--lc-secondary)">
+                                {{ group.name }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted small">Sin rol</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td>
+                    {% if u.is_active %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i>Activo
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="bi bi-dash-circle me-1"></i>Inactivo
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'users:user_edit' u.pk %}"
+                       class="btn btn-sm btn-lc-primary">
+                        <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    <a href="{% url 'users:user_toggle' u.pk %}"
+                       class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                       onclick="return confirm('¿Confirmás esta acción?')">
+                        <i class="bi bi-{% if u.is_active %}person-dash{% else %}person-check{% endif %}-fill"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                    No hay usuarios registrados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
