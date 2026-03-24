@@ -5,7 +5,7 @@
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h4><i class="bi bi-geo-alt-fill me-2"></i>Ubicaciones de {{ client.name }}</h4>
-        <small class="opacity-75">Sitios donde se prestan servicios de limpieza</small>
+        <small class="opacity-75">{{ client.address }}</small>
     </div>
     <a href="{% url 'clients:client_list' %}" class="btn btn-sm btn-outline-light">
         <i class="bi bi-arrow-left me-1"></i>Clientes
@@ -17,15 +17,6 @@
         <i class="bi bi-plus-lg me-1"></i>Nueva Ubicación
     </a>
 </div>
-
-{% if messages %}
-    {% for msg in messages %}
-    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mb-3" role="alert">
-        {{ msg }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-{% endif %}
 
 <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
     <table class="table table-lc table-hover mb-0">

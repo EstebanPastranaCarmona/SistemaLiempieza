@@ -4,19 +4,21 @@ from .models import Client, ClientLocation
 
 class ClientForm(forms.ModelForm):
     class Meta:
-        model = Client
-        fields = ['name', 'contact_name', 'phone', 'email']
+        model  = Client
+        fields = ['name', 'contact_name', 'phone', 'email', 'address']
         labels = {
-            'name': 'Nombre de la empresa',
+            'name':         'Nombre de la empresa',
             'contact_name': 'Persona de contacto',
-            'phone': 'Teléfono',
-            'email': 'Correo electrónico',
+            'phone':        'Teléfono',
+            'email':        'Correo electrónico',
+            'address':      'Dirección principal',
         }
         widgets = {
             'name':         forms.TextInput(attrs={'class': 'form-control'}),
             'contact_name': forms.TextInput(attrs={'class': 'form-control'}),
             'phone':        forms.TextInput(attrs={'class': 'form-control'}),
             'email':        forms.EmailInput(attrs={'class': 'form-control'}),
+            'address':      forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def clean_name(self):
@@ -33,7 +35,7 @@ class ClientForm(forms.ModelForm):
 
 class ClientLocationForm(forms.ModelForm):
     class Meta:
-        model = ClientLocation
+        model  = ClientLocation
         fields = ['client', 'name', 'address', 'notes']
         labels = {
             'client':  'Cliente',
