@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Inventario — Movimientos{% endblock %}
+
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4><i class="bi bi-arrow-left-right me-2"></i>Movimientos de Inventario</h4>
+        <small class="opacity-75">Historial de entradas y salidas</small>
+    </div>
+    <a href="{% url 'inventory:product_list' %}" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-arrow-left me-1"></i>Productos
+    </a>
+</div>
+
+<div class="d-flex mb-3 justify-content-end">
+    <a href="{% url 'inventory:movement_create' %}" class="btn-lc">
+        <i class="bi bi-plus-lg me-1"></i>Registrar Movimiento
+    </a>
+</div>
+
+{% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mb-3" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+    <table class="table table-lc table-hover mb-0">
+        <thead>
+            <tr>
+                <th><i class="bi bi-calendar me-1"></i>Fecha</th>
+                <th><i class="bi bi-arrow-left-right me-1"></i>Tipo</th>
+                <th><i class="bi bi-box me-1"></i>Producto</th>
+                <th><i class="bi bi-stack me-1"></i>Cantidad</th>
+                <th><i class="bi bi-chat-left-text me-1"></i>Motivo</th>
+                <th><i class="bi bi-person me-1"></i>Registrado por</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in movements %}
+            <tr>
+                <td class="small">{{ m.date|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if m.movement_type == 'INSIDE' %}
+                        <span class="badge bg-success"><i class="bi bi-arrow-down me-1"></i>Entrada</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark"><i class="bi bi-arrow-up me-1"></i>Salida</span>
+                    {% endif %}
+                </td>
+                <td class="fw-semibold">{{ m.lot.product.name }}</td>
+                <td>{{ m.quantity }}</td>
+                <td>{{ m.reason }}</td>
+                <td>{{ m.created_by.username|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    <i class="bi bi-arrow-left-right fs-4 d-block mb-2"></i>
+                    No hay movimientos registrados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

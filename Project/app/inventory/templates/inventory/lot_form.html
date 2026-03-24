@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Lote{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+
+        <nav class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'users:dashboard' %}" class="text-decoration-none"><i class="bi bi-house-fill"></i></a></li>
+                <li class="breadcrumb-item"><a href="{% url 'inventory:product_list' %}" class="text-decoration-none">Inventario</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'inventory:lot_list' %}" class="text-decoration-none">Lotes</a></li>
+                <li class="breadcrumb-item active">{{ action }}</li>
+            </ol>
+        </nav>
+
+        <div class="card form-card">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-layers-fill fs-5"></i>
+                <span class="fw-600">{{ action }} Lote</span>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="bi bi-box me-1"></i>Producto</label>
+                        {{ form.product }}
+                        {% if form.product.errors %}<div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.product.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label"><i class="bi bi-stack me-1"></i>Cantidad</label>
+                            {{ form.quantity }}
+                            {% if form.quantity.errors %}<div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.quantity.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label"><i class="bi bi-currency-dollar me-1"></i>Costo unitario</label>
+                            {{ form.cost }}
+                            {% if form.cost.errors %}<div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.cost.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="bi bi-calendar-event me-1"></i>Fecha de vencimiento</label>
+                        {{ form.expiration_date }}
+                        {% if form.expiration_date.errors %}<div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.expiration_date.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-shop me-1"></i>Proveedor</label>
+                        {{ form.supplier }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="bi bi-check-lg me-1"></i>Guardar
+                        </button>
+                        <a href="{% url 'inventory:lot_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

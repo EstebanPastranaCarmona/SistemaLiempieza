@@ -2,24 +2,26 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block body %}
-<div class="page-header">
-    <h4><i class="bi bi-grid-fill me-2"></i>Panel Principal</h4>
-    <small class="opacity-75">Bienvenido, {{ user.get_full_name|default:user.username }}</small>
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-grid-fill me-2"></i>Panel Principal</h4>
+        <small class="opacity-75">Bienvenido, {{ user.get_full_name|default:user.username }}</small>
+    </div>
 </div>
 
-<div class="row g-3">
+<div class="row g-4">
 
     {% if user.is_admin %}
     <div class="col-md-4">
         <a href="{% url 'users:user_list' %}" class="text-decoration-none">
-            <div class="card card-module p-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="icon-wrap">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon">
                         <i class="bi bi-people-fill"></i>
                     </div>
                     <div>
-                        <h6 class="mb-0 text-dark">Usuarios</h6>
-                        <small class="text-muted">Gestión de personal y roles</small>
+                        <h6 class="mb-1 text-white">Usuarios</h6>
+                        <small class="text-white opacity-75">Gestión de personal y roles</small>
                     </div>
                 </div>
             </div>
@@ -29,62 +31,85 @@
 
     {% if user.is_admin or user.is_supervisor %}
     <div class="col-md-4">
-        <div class="card card-module p-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="icon-wrap">
-                    <i class="bi bi-box-seam-fill"></i>
-                </div>
-                <div>
-                    <h6 class="mb-0 text-dark">Inventario</h6>
-                    <small class="text-muted">Productos, lotes y stock</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card card-module p-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="icon-wrap">
-                    <i class="bi bi-bar-chart-fill"></i>
-                </div>
-                <div>
-                    <h6 class="mb-0 text-dark">Reportes</h6>
-                    <small class="text-muted">Historial por cliente</small>
+        <a href="{% url 'clients:client_list' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-white">Clientes</h6>
+                        <small class="text-white opacity-75">Empresas y ubicaciones</small>
+                    </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
-    {% endif %}
 
-    {% if user.is_admin or user.is_supervisor %}
     <div class="col-md-4">
-        <div class="card card-module p-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="icon-wrap">
-                    <i class="bi bi-clipboard2-check-fill"></i>
-                </div>
-                <div>
-                    <h6 class="mb-0 text-dark">Tareas</h6>
-                    <small class="text-muted">Programar y supervisar</small>
+        <a href="{% url 'inventory:product_list' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-white">Inventario</h6>
+                        <small class="text-white opacity-75">Productos, lotes y stock</small>
+                    </div>
                 </div>
             </div>
-        </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="#" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon">
+                        <i class="bi bi-clipboard2-check-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-white">Tareas</h6>
+                        <small class="text-white opacity-75">Programar y supervisar</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="#" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-white">Reportes</h6>
+                        <small class="text-white opacity-75">Historial por cliente</small>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
     {% endif %}
 
     {% if user.is_operario %}
     <div class="col-md-4">
-        <div class="card card-module p-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="icon-wrap">
-                    <i class="bi bi-list-check"></i>
-                </div>
-                <div>
-                    <h6 class="mb-0 text-dark">Mis Tareas</h6>
-                    <small class="text-muted">Ver y completar tareas</small>
+        <a href="#" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon">
+                        <i class="bi bi-list-check"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-white">Mis Tareas</h6>
+                        <small class="text-white opacity-75">Ver y completar tareas</small>
+                    </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
     {% endif %}
 

@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import Product, Lot, Movement
 
-# Register your models here.
+admin.site.register(Product)
+admin.site.register(Lot)
+admin.site.register(Movement)
