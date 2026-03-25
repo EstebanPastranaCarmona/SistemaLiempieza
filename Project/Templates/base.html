@@ -48,7 +48,7 @@
 
         /* ── Contenedor principal ────────────────────────────── */
         .main-container {
-            padding-top: 80px;   /* compensa navbar fixed-top (60px) + espacio */
+            padding-top: 80px;
             padding-bottom: 2rem;
             min-height: 100vh;
         }
@@ -97,33 +97,56 @@
             color: white;
         }
 
+        /* ── Tabla wrapper ───────────────────────────────────── */
+        .table-wrapper {
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+        }
+
         /* ── Tablas ──────────────────────────────────────────── */
         .table-lc {
-            color: #1a1a2e;
             margin: 0;
+            /* resetea variables de Bootstrap para que no interfieran */
+            --bs-table-bg: transparent;
+            --bs-table-color: inherit;
+            --bs-table-hover-bg: transparent;
+            --bs-table-striped-bg: transparent;
         }
-        .table-lc thead tr {
-            background: linear-gradient(135deg, var(--lc-primary), var(--lc-secondary));
-        }
+
+        /* Fuerza fondo y texto en TODAS las celdas del thead */
+        .table-lc thead tr,
         .table-lc thead th {
-            color: white;
-            font-weight: 500;
-            border: none;
+            --bs-table-bg: #0d47a1;
+            --bs-table-color: #ffffff;
+            background-color: #0d47a1 !important;
+            color: #ffffff !important;
+            font-weight: 600;
+            border: none !important;
             padding: 0.85rem 1rem;
             font-size: 0.875rem;
+            white-space: nowrap;
         }
+
         .table-lc tbody tr {
-            background: rgba(255,255,255,0.95);
-            border-bottom: 1px solid rgba(0,0,0,0.06);
+            background-color: #ffffff;
+            border-bottom: 1px solid rgba(0,0,0,0.07);
             transition: background 0.15s;
         }
         .table-lc tbody tr:hover {
-            background: rgba(255,255,255,1);
+            background-color: #f0f4ff !important;
         }
         .table-lc tbody td {
+            color: #1a1a2e;
             padding: 0.75rem 1rem;
             vertical-align: middle;
             font-size: 0.9rem;
+            background-color: transparent;
+        }
+        /* override Bootstrap hover que usa variable --bs-table-hover-bg */
+        .table-lc.table-hover > tbody > tr:hover > * {
+            --bs-table-accent-bg: #f0f4ff;
+            color: #1a1a2e;
         }
 
         /* ── Formularios ─────────────────────────────────────── */
