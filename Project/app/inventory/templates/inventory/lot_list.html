@@ -25,7 +25,6 @@
                 <th><i class="bi bi-box me-1"></i>Producto</th>
                 <th><i class="bi bi-stack me-1"></i>Cantidad</th>
                 <th><i class="bi bi-calendar-event me-1"></i>Vencimiento</th>
-                <th><i class="bi bi-shop me-1"></i>Proveedor</th>
                 <th><i class="bi bi-currency-dollar me-1"></i>Costo unit.</th>
                 <th><i class="bi bi-circle-fill me-1"></i>Estado</th>
             </tr>
@@ -34,7 +33,7 @@
             {% for lot in lots %}
             <tr {% if lot.days_until_expiration <= 7 %}style="background: rgba(244,67,54,0.06);"{% elif lot.days_until_expiration <= 30 %}style="background: rgba(255,152,0,0.06);"{% endif %}>
                 <td class="fw-semibold">{{ lot.product.name }}</td>
-                <td>{{ lot.quantity }} {{ lot.product.unit }}</td>
+                <td>{{ lot.quantity }}</td>
                 <td>
                     {{ lot.expiration_date }}
                     {% if lot.is_expired %}
@@ -43,7 +42,6 @@
                         <span class="badge bg-warning text-dark ms-1">{{ lot.days_until_expiration }}d</span>
                     {% endif %}
                 </td>
-                <td>{{ lot.supplier|default:"—" }}</td>
                 <td>₡{{ lot.cost }}</td>
                 <td>
                     {% if lot.is_expired %}
@@ -55,7 +53,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center py-5" style="background:white; color:#888;">
+                <td colspan="5" class="text-center py-5" style="background:white; color:#888;">
                     <i class="bi bi-layers fs-3 d-block mb-2"></i>
                     No hay lotes registrados.
                 </td>

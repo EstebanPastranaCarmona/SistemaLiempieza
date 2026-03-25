@@ -3,12 +3,12 @@ from django.utils import timezone
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name='Nombre')
+    name         = models.CharField(max_length=100, unique=True, verbose_name='Nombre')
     product_type = models.CharField(max_length=60, verbose_name='Tipo')
-    unit = models.CharField(max_length=30, verbose_name='Unidad de medida')
-    min_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Stock mínimo')
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    unit         = models.CharField(max_length=30, verbose_name='Unidad de medida')
+    min_stock    = models.IntegerField(default=0, verbose_name='Stock mínimo')
+    is_active    = models.BooleanField(default=True)
+    created_at   = models.DateTimeField(auto_now_add=True)
 
     def get_total_stock(self):
         result = self.lots.filter(is_active=True).aggregate(total=models.Sum('quantity'))
@@ -21,19 +21,18 @@ class Product(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'Producto'
+        verbose_name        = 'Producto'
         verbose_name_plural = 'Productos'
-        ordering = ['name']
+        ordering            = ['name']
 
 
 class Lot(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='lots', verbose_name='Producto')
-    quantity = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Cantidad')
+    product         = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='lots', verbose_name='Producto')
+    quantity        = models.IntegerField(verbose_name='Cantidad')
     expiration_date = models.DateField(verbose_name='Fecha de vencimiento')
-    supplier = models.CharField(max_length=100, blank=True, verbose_name='Proveedor')
-    cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Costo unitario')
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    cost            = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Costo unitario')
+    is_active       = models.BooleanField(default=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
 
     def is_expired(self):
         return self.expiration_date < timezone.now().date()
@@ -45,22 +44,22 @@ class Lot(models.Model):
         return f'{self.product.name} — Lote #{self.id}'
 
     class Meta:
-        verbose_name = 'Lote'
+        verbose_name        = 'Lote'
         verbose_name_plural = 'Lotes'
-        ordering = ['expiration_date']
+        ordering            = ['expiration_date']
 
 
 class Movement(models.Model):
-    INSIDE = 'INSIDE'
+    INSIDE  = 'INSIDE'
     OUTSIDE = 'OUTSIDE'
     MOVEMENT_TYPES = [(INSIDE, 'Entrada'), (OUTSIDE, 'Salida')]
 
     movement_type = models.CharField(max_length=10, choices=MOVEMENT_TYPES, verbose_name='Tipo')
-    lot = models.ForeignKey(Lot, on_delete=models.PROTECT, related_name='movements', verbose_name='Lote')
-    quantity = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Cantidad')
-    reason = models.CharField(max_length=200, verbose_name='Motivo')
-    date = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(
+    lot           = models.ForeignKey(Lot, on_delete=models.PROTECT, related_name='movements', verbose_name='Lote')
+    quantity      = models.IntegerField(verbose_name='Cantidad')
+    reason        = models.CharField(max_length=200, verbose_name='Motivo')
+    date          = models.DateTimeField(auto_now_add=True)
+    created_by    = models.ForeignKey(
         'users.User', on_delete=models.SET_NULL, null=True, related_name='movements', verbose_name='Registrado por'
     )
 
@@ -68,6 +67,6 @@ class Movement(models.Model):
         return f'{self.get_movement_type_display()} — {self.lot.product.name} ({self.quantity})'
 
     class Meta:
-        verbose_name = 'Movimiento'
+        verbose_name        = 'Movimiento'
         verbose_name_plural = 'Movimientos'
-        ordering = ['-date']
+        ordering            = ['-date']

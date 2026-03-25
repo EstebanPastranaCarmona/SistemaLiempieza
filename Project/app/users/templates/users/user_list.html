@@ -32,7 +32,6 @@
         </a>
         {% endif %}
     </form>
-
     <div class="ms-auto d-flex gap-2">
         <a href="?active=true" class="btn-lc-outline"
            style="{% if active_filter %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
@@ -88,7 +87,7 @@
                     </a>
                     <a href="{% url 'users:user_toggle' u.pk %}"
                        class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
-                       onclick="return confirm('¿Confirmás esta acción?')">
+                       onclick="return confirm('{% if u.is_active %}¿Desactivar al usuario {{ u.username }}? No podrá iniciar sesión.{% else %}¿Activar al usuario {{ u.username }}?{% endif %}')">
                         <i class="bi bi-{% if u.is_active %}person-dash{% else %}person-check{% endif %}-fill"></i>
                     </a>
                 </td>

@@ -65,7 +65,7 @@
                     </a>
                     <a href="{% url 'inventory:product_toggle' p.pk %}"
                        class="btn btn-sm btn-outline-danger"
-                       onclick="return confirm('¿Confirmás esta acción?')">
+                       onclick="return confirm('¿Archivar el producto \"{{ p.name }}\"? Dejará de aparecer en el inventario activo.')">
                         <i class="bi bi-archive-fill"></i>
                     </a>
                 </td>

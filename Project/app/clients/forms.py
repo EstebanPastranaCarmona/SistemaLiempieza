@@ -16,7 +16,13 @@ class ClientForm(forms.ModelForm):
         widgets = {
             'name':         forms.TextInput(attrs={'class': 'form-control'}),
             'contact_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'phone':        forms.TextInput(attrs={'class': 'form-control'}),
+            'phone':        forms.TextInput(attrs={
+                                'class': 'form-control',
+                                'placeholder': 'ej: 88001122',
+                                'pattern': r'[0-9\+\-\s\(\)]{7,20}',
+                                'title': 'Solo números, espacios, guiones o paréntesis (7-20 caracteres)',
+                                'maxlength': '20',
+                            }),
             'email':        forms.EmailInput(attrs={'class': 'form-control'}),
             'address':      forms.TextInput(attrs={'class': 'form-control'}),
         }
@@ -31,6 +37,18 @@ class ClientForm(forms.ModelForm):
         if qs.exists():
             raise forms.ValidationError('Ya existe un cliente con ese nombre.')
         return name
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        if not phone:
+            return phone
+        import re
+        digits = re.sub(r'[^0-9]', '', phone)
+        if len(digits) < 7 or len(digits) > 15:
+            raise forms.ValidationError('El teléfono debe tener entre 7 y 15 dígitos.')
+        if not re.match(r'^[0-9\+\-\s\(\)]+$', phone):
+            raise forms.ValidationError('Solo se permiten números, espacios, guiones y paréntesis.')
+        return phone
 
 
 class ClientLocationForm(forms.ModelForm):
