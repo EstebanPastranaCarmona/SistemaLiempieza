@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 from .models import Client, ClientLocation
 from .forms import ClientForm, ClientLocationForm
 from app.users.views import admin_required
@@ -46,6 +47,7 @@ def client_edit(request, pk):
 
 @login_required
 @admin_required
+@require_POST
 def client_toggle_active(request, pk):
     client = get_object_or_404(Client, pk=pk)
     client.is_active = not client.is_active

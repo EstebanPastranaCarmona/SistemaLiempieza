@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from .models import Product, Lot, Movement
 from .forms import ProductForm, LotForm, MovementForm
 from app.users.views import admin_required
@@ -20,7 +21,7 @@ def supervisor_or_admin_required(view_func):
     return wrapper
 
 
-# ── Productos ────────────────────────────────────────────────
+# ── Productos ────────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
@@ -58,6 +59,7 @@ def product_edit(request, pk):
 
 @login_required
 @admin_required
+@require_POST
 def product_toggle_active(request, pk):
     product = get_object_or_404(Product, pk=pk)
     product.is_active = not product.is_active
@@ -67,7 +69,7 @@ def product_toggle_active(request, pk):
     return redirect('inventory:product_list')
 
 
-# ── Lotes ────────────────────────────────────────────────────
+# ── Lotes ──────────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
@@ -88,7 +90,7 @@ def lot_create(request):
     return render(request, 'inventory/lot_form.html', {'form': form, 'action': 'Nuevo'})
 
 
-# ── Movimientos ──────────────────────────────────────────────
+# ── Movimientos ──────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
@@ -119,7 +121,7 @@ def movement_create(request):
     return render(request, 'inventory/movement_form.html', {'form': form, 'action': 'Registrar'})
 
 
-# ── Alertas ──────────────────────────────────────────────────
+# ── Alertas ─────────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required

@@ -64,11 +64,14 @@
                     <a href="{% url 'clients:client_edit' c.pk %}" class="btn btn-sm btn-lc-primary">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
-                    <a href="{% url 'clients:client_toggle' c.pk %}"
-                       class="btn btn-sm {% if c.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
-                       onclick="return confirm('{% if c.is_active %}¿Desactivar al cliente \"{{ c.name }}\"? Ya no aparecerá en la lista activa.{% else %}¿Activar al cliente \"{{ c.name }}\"?{% endif %}')">
-                        <i class="bi bi-{% if c.is_active %}building-dash{% else %}building-check{% endif %}"></i>
-                    </a>
+                    <form method="POST" action="{% url 'clients:client_toggle' c.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn btn-sm {% if c.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                                onclick="return confirm('{% if c.is_active %}¿Desactivar al cliente &quot;{{ c.name }}&quot;? Ya no aparecerá en la lista activa.{% else %}¿Activar al cliente &quot;{{ c.name }}&quot;?{% endif %}')">
+                            <i class="bi bi-{% if c.is_active %}building-dash{% else %}building-check{% endif %}"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
             {% empty %}
