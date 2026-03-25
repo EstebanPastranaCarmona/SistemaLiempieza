@@ -1,3 +1,36 @@
 from django.db import models
 
-# Create your models here.
+
+class Client(models.Model):
+    name         = models.CharField(max_length=100, verbose_name='Nombre')
+    contact_name = models.CharField(max_length=100, verbose_name='Contacto')          # obligatorio
+    phone        = models.CharField(max_length=20, blank=True, verbose_name='Teléfono')  # opcional
+    email        = models.EmailField(verbose_name='Correo')                             # obligatorio
+    address      = models.CharField(max_length=200, verbose_name='Dirección principal') # obligatorio
+    is_active    = models.BooleanField(default=True, verbose_name='Activo')
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name        = 'Cliente'
+        verbose_name_plural = 'Clientes'
+        ordering            = ['name']
+
+
+class ClientLocation(models.Model):
+    client    = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='locations', verbose_name='Cliente')
+    name      = models.CharField(max_length=100, verbose_name='Nombre de la ubicación')
+    address   = models.CharField(max_length=200, verbose_name='Dirección')
+    notes     = models.TextField(blank=True, verbose_name='Notas')
+    is_active = models.BooleanField(default=True, verbose_name='Activa')
+
+    def __str__(self):
+        return f'{self.client.name} — {self.name}'
+
+    class Meta:
+        verbose_name        = 'Ubicación'
+        verbose_name_plural = 'Ubicaciones'
+        ordering            = ['client', 'name']
+        unique_together     = ('client', 'name')
