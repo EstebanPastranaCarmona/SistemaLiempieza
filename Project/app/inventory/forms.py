@@ -32,18 +32,16 @@ class ProductForm(forms.ModelForm):
 class LotForm(forms.ModelForm):
     class Meta:
         model  = Lot
-        fields = ['product', 'quantity', 'expiration_date', 'cost']
+        fields = ['product', 'quantity', 'expiration_date']
         labels = {
             'product':         'Producto',
             'quantity':        'Cantidad',
             'expiration_date': 'Fecha de vencimiento',
-            'cost':            'Costo unitario',
         }
         widgets = {
             'product':         forms.Select(attrs={'class': 'form-select'}),
             'quantity':        forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'step': '1'}),
             'expiration_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'cost':            forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
         }
 
 

@@ -17,6 +17,12 @@ class Product(models.Model):
     def is_below_min_stock(self):
         return self.get_total_stock() < self.min_stock
 
+    def archive(self):
+        """Archiva el producto y todos sus lotes activos en cascada."""
+        self.is_active = False
+        self.save()
+        self.lots.filter(is_active=True).update(is_active=False)
+
     def __str__(self):
         return self.name
 
@@ -30,7 +36,6 @@ class Lot(models.Model):
     product         = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='lots', verbose_name='Producto')
     quantity        = models.IntegerField(verbose_name='Cantidad')
     expiration_date = models.DateField(verbose_name='Fecha de vencimiento')
-    cost            = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Costo unitario')
     is_active       = models.BooleanField(default=True)
     created_at      = models.DateTimeField(auto_now_add=True)
 
