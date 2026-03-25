@@ -47,15 +47,16 @@
     </div>
 
     <div class="col-md-4">
-        <a href="{% url 'inventory:product_list' %}" class="text-decoration-none">
+        <!-- Siempre entra a lotes, nunca a productos directamente -->
+        <a href="{% url 'inventory:lot_list' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
                     <div class="card-icon">
-                        <i class="bi bi-box-seam-fill"></i>
+                        <i class="bi bi-layers-fill"></i>
                     </div>
                     <div>
                         <h6 class="mb-1 text-white">Inventario</h6>
-                        <small class="text-white opacity-75">Productos, lotes y stock</small>
+                        <small class="text-white opacity-75">Lotes, productos y stock</small>
                     </div>
                 </div>
             </div>
