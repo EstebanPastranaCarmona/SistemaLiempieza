@@ -13,7 +13,7 @@
 </div>
 
 <h6 class="text-white mb-2 mt-1"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Productos con stock bajo</h6>
-<div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
+<div class="table-wrapper mb-4">
     <table class="table table-lc table-hover mb-0">
         <thead>
             <tr>
@@ -25,7 +25,7 @@
         </thead>
         <tbody>
             {% for p in low_stock %}
-            <tr style="background: rgba(244,67,54,0.08);">
+            <tr>
                 <td class="fw-semibold">{{ p.name }}</td>
                 <td>{{ p.product_type }}</td>
                 <td class="text-danger fw-bold">{{ p.get_total_stock }} {{ p.unit }}</td>
@@ -33,7 +33,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" class="text-center text-muted py-3">
+                <td colspan="4" class="text-center py-4" style="background:white; color:#888;">
                     <i class="bi bi-check-circle-fill text-success me-2"></i>Todos los productos tienen stock suficiente.
                 </td>
             </tr>
@@ -43,7 +43,7 @@
 </div>
 
 <h6 class="text-white mb-2"><i class="bi bi-calendar-x-fill me-2 text-warning"></i>Lotes próximos a vencer (30 días)</h6>
-<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+<div class="table-wrapper">
     <table class="table table-lc table-hover mb-0">
         <thead>
             <tr>
@@ -56,7 +56,7 @@
         </thead>
         <tbody>
             {% for lot in expiring_lots %}
-            <tr style="background: rgba(255,152,0,0.08);">
+            <tr>
                 <td class="fw-semibold">{{ lot.product.name }}</td>
                 <td>#{{ lot.id }}</td>
                 <td>{{ lot.quantity }} {{ lot.product.unit }}</td>
@@ -71,7 +71,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" class="text-center text-muted py-3">
+                <td colspan="5" class="text-center py-4" style="background:white; color:#888;">
                     <i class="bi bi-check-circle-fill text-success me-2"></i>No hay lotes próximos a vencer.
                 </td>
             </tr>

@@ -29,7 +29,7 @@
     </div>
 </div>
 
-<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+<div class="table-wrapper">
     <table class="table table-lc table-hover mb-0">
         <thead>
             <tr>
@@ -44,14 +44,12 @@
         </thead>
         <tbody>
             {% for p in products %}
-            <tr {% if p.id in low_stock_ids %}style="background: rgba(244,67,54,0.08);"{% endif %}>
+            <tr {% if p.id in low_stock_ids %}style="background: rgba(244,67,54,0.06);"{% endif %}>
                 <td class="fw-semibold">{{ p.name }}</td>
                 <td>{{ p.product_type }}</td>
                 <td>{{ p.unit }}</td>
                 <td>
-                    <span class="fw-bold {% if p.id in low_stock_ids %}text-danger{% endif %}">
-                        {{ p.get_total_stock }}
-                    </span>
+                    <span class="fw-bold {% if p.id in low_stock_ids %}text-danger{% endif %}">{{ p.get_total_stock }}</span>
                 </td>
                 <td>{{ p.min_stock }}</td>
                 <td>
@@ -74,8 +72,8 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center text-muted py-4">
-                    <i class="bi bi-box-seam fs-4 d-block mb-2"></i>
+                <td colspan="7" class="text-center py-5" style="background:white; color:#888;">
+                    <i class="bi bi-box-seam fs-3 d-block mb-2"></i>
                     No hay productos registrados.
                 </td>
             </tr>

@@ -18,7 +18,7 @@
     </a>
 </div>
 
-<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+<div class="table-wrapper">
     <table class="table table-lc table-hover mb-0">
         <thead>
             <tr>
@@ -32,7 +32,7 @@
         </thead>
         <tbody>
             {% for lot in lots %}
-            <tr {% if lot.days_until_expiration <= 7 %}style="background: rgba(244,67,54,0.08);"{% elif lot.days_until_expiration <= 30 %}style="background: rgba(255,152,0,0.08);"{% endif %}>
+            <tr {% if lot.days_until_expiration <= 7 %}style="background: rgba(244,67,54,0.06);"{% elif lot.days_until_expiration <= 30 %}style="background: rgba(255,152,0,0.06);"{% endif %}>
                 <td class="fw-semibold">{{ lot.product.name }}</td>
                 <td>{{ lot.quantity }} {{ lot.product.unit }}</td>
                 <td>
@@ -55,8 +55,8 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                    <i class="bi bi-layers fs-4 d-block mb-2"></i>
+                <td colspan="6" class="text-center py-5" style="background:white; color:#888;">
+                    <i class="bi bi-layers fs-3 d-block mb-2"></i>
                     No hay lotes registrados.
                 </td>
             </tr>

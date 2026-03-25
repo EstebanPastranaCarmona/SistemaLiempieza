@@ -12,18 +12,15 @@
     </a>
 </div>
 
-<!-- Filtros -->
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-
-    <!-- Filtro por rol -->
     <form method="GET" class="d-flex gap-2">
         <input type="hidden" name="active" value="{{ request.GET.active|default:'true' }}">
         <select name="rol" class="form-select" onchange="this.form.submit()"
-                style="background: rgba(255,255,255,0.08); border: 1px solid var(--lc-border);
-                       color: rgb(0, 0, 0); border-radius: 10px; width: auto;">
-            <option value="" style="background: var(--lc-dark);">Todos los roles</option>
+                style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+                       color: white; border-radius: 10px; width: auto;">
+            <option value="" style="background: #1a237e;">Todos los roles</option>
             {% for grupo in grupos %}
-                <option value="{{ grupo.id }}" style="background: var(--lc-dark);"
+                <option value="{{ grupo.id }}" style="background: #1a237e;"
                         {% if rol_filter == grupo.id|stringformat:"s" %}selected{% endif %}>
                     {{ grupo.name }}
                 </option>
@@ -36,7 +33,6 @@
         {% endif %}
     </form>
 
-    <!-- Tabs y botón nuevo -->
     <div class="ms-auto d-flex gap-2">
         <a href="?active=true" class="btn-lc-outline"
            style="{% if active_filter %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
@@ -50,12 +46,9 @@
             <i class="bi bi-person-plus-fill me-1"></i>Nuevo
         </a>
     </div>
-
 </div>
 
-
-
-<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+<div class="table-wrapper">
     <table class="table table-lc table-hover mb-0">
         <thead>
             <tr>
@@ -70,16 +63,13 @@
         <tbody>
             {% for u in users %}
             <tr>
-                <td class="fw-400">{{ u.username }}</td>
+                <td>{{ u.username }}</td>
                 <td>{{ u.get_full_name|default:"—" }}</td>
                 <td>{{ u.email|default:"—" }}</td>
                 <td>
                     {% with u.groups.first as group %}
                         {% if group %}
-                            <span class="badge rounded-pill"
-                                  style="background-color: var(--lc-secondary)">
-                                {{ group.name }}
-                            </span>
+                            <span class="badge rounded-pill" style="background-color: var(--lc-secondary)">{{ group.name }}</span>
                         {% else %}
                             <span class="text-muted small">Sin rol</span>
                         {% endif %}
@@ -87,18 +77,13 @@
                 </td>
                 <td>
                     {% if u.is_active %}
-                        <span class="badge bg-success">
-                            <i class="bi bi-check-circle me-1"></i>Activo
-                        </span>
+                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Activo</span>
                     {% else %}
-                        <span class="badge bg-secondary">
-                            <i class="bi bi-dash-circle me-1"></i>Inactivo
-                        </span>
+                        <span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i>Inactivo</span>
                     {% endif %}
                 </td>
-                <td>
-                    <a href="{% url 'users:user_edit' u.pk %}"
-                       class="btn btn-sm btn-lc-primary">
+                <td class="d-flex gap-1">
+                    <a href="{% url 'users:user_edit' u.pk %}" class="btn btn-sm btn-lc-primary">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                     <a href="{% url 'users:user_toggle' u.pk %}"
@@ -110,8 +95,8 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                    <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                <td colspan="6" class="text-center py-5" style="background:white; color:#888;">
+                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
                     No hay usuarios registrados.
                 </td>
             </tr>
