@@ -9,22 +9,21 @@ class ClientForm(forms.ModelForm):
         labels = {
             'name':         'Nombre de la empresa',
             'contact_name': 'Persona de contacto',
-            'phone':        'Teléfono',
+            'phone':        'Teléfono (opcional)',
             'email':        'Correo electrónico',
             'address':      'Dirección principal',
         }
         widgets = {
-            'name':         forms.TextInput(attrs={'class': 'form-control'}),
-            'contact_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'name':         forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'contact_name': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
             'phone':        forms.TextInput(attrs={
                                 'class': 'form-control',
-                                'placeholder': 'ej: 88001122',
+                                'placeholder': 'ej: 88001122 (opcional)',
                                 'pattern': r'[0-9\+\-\s\(\)]{7,20}',
-                                'title': 'Solo números, espacios, guiones o paréntesis (7-20 caracteres)',
                                 'maxlength': '20',
                             }),
-            'email':        forms.EmailInput(attrs={'class': 'form-control'}),
-            'address':      forms.TextInput(attrs={'class': 'form-control'}),
+            'email':        forms.EmailInput(attrs={'class': 'form-control', 'required': True}),
+            'address':      forms.TextInput(attrs={'class': 'form-control', 'required': True}),
         }
 
     def clean_name(self):
@@ -38,10 +37,28 @@ class ClientForm(forms.ModelForm):
             raise forms.ValidationError('Ya existe un cliente con ese nombre.')
         return name
 
+    def clean_contact_name(self):
+        val = self.cleaned_data.get('contact_name', '').strip()
+        if not val:
+            raise forms.ValidationError('La persona de contacto es obligatoria.')
+        return val
+
+    def clean_email(self):
+        val = self.cleaned_data.get('email', '').strip()
+        if not val:
+            raise forms.ValidationError('El correo electrónico es obligatorio.')
+        return val
+
+    def clean_address(self):
+        val = self.cleaned_data.get('address', '').strip()
+        if not val:
+            raise forms.ValidationError('La dirección es obligatoria.')
+        return val
+
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
         if not phone:
-            return phone
+            return phone   # opcional, no falla si está vacío
         import re
         digits = re.sub(r'[^0-9]', '', phone)
         if len(digits) < 7 or len(digits) > 15:
@@ -59,7 +76,7 @@ class ClientLocationForm(forms.ModelForm):
             'client':  'Cliente',
             'name':    'Nombre de la ubicación',
             'address': 'Dirección',
-            'notes':   'Notas adicionales',
+            'notes':   'Notas adicionales (opcional)',
         }
         widgets = {
             'client':  forms.Select(attrs={'class': 'form-select'}),

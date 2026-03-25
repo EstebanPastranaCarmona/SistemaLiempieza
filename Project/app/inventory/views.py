@@ -21,7 +21,9 @@ def supervisor_or_admin_required(view_func):
     return wrapper
 
 
-# ── Redirección raíz inventario ───────────────────────────
+# ── Raíz: siempre redirige a lotes ───────────────────────────
+# Se usa redirect permanente (302) — NO cacheable, así
+# el navegador no guarda la ruta anterior.
 @login_required
 def inventory_home(request):
     return redirect('inventory:lot_list')
@@ -32,7 +34,7 @@ def inventory_home(request):
 @login_required
 @supervisor_or_admin_required
 def lot_list(request):
-    lots = Lot.objects.filter(is_active=True).select_related('product').order_by('expiration_date')
+    lots  = Lot.objects.filter(is_active=True).select_related('product').order_by('expiration_date')
     today = timezone.now().date()
     return render(request, 'inventory/lot_list.html', {'lots': lots, 'today': today})
 
@@ -51,11 +53,11 @@ def lot_create(request):
 @login_required
 @admin_required
 def lot_edit(request, pk):
-    lot = get_object_or_404(Lot, pk=pk)
+    lot  = get_object_or_404(Lot, pk=pk)
     form = LotForm(request.POST or None, instance=lot)
     if form.is_valid():
         form.save()
-        messages.success(request, f'Lote actualizado.')
+        messages.success(request, 'Lote actualizado.')
         return redirect('inventory:lot_list')
     return render(request, 'inventory/lot_form.html', {'form': form, 'action': 'Editar', 'lot': lot})
 
@@ -64,7 +66,7 @@ def lot_edit(request, pk):
 @admin_required
 @require_POST
 def lot_toggle_active(request, pk):
-    lot = get_object_or_404(Lot, pk=pk)
+    lot           = get_object_or_404(Lot, pk=pk)
     lot.is_active = not lot.is_active
     lot.save()
     estado = 'activado' if lot.is_active else 'archivado'
@@ -77,11 +79,11 @@ def lot_toggle_active(request, pk):
 @login_required
 @supervisor_or_admin_required
 def product_list(request):
-    products = Product.objects.filter(is_active=True)
-    low_stock = [p for p in products if p.is_below_min_stock()]
+    products     = Product.objects.filter(is_active=True)
+    low_stock_ids = [p.id for p in products if p.is_below_min_stock()]
     return render(request, 'inventory/product_list.html', {
-        'products': products,
-        'low_stock_ids': [p.id for p in low_stock],
+        'products':      products,
+        'low_stock_ids': low_stock_ids,
     })
 
 
@@ -100,7 +102,7 @@ def product_create(request):
 @admin_required
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    form = ProductForm(request.POST or None, instance=product)
+    form    = ProductForm(request.POST or None, instance=product)
     if form.is_valid():
         form.save()
         messages.success(request, 'Producto actualizado.')
@@ -113,7 +115,7 @@ def product_edit(request, pk):
 @require_POST
 def product_toggle_active(request, pk):
     """Archiva el producto Y todos sus lotes activos en cascada."""
-    product = get_object_or_404(Product, pk=pk)
+    product    = get_object_or_404(Product, pk=pk)
     lots_count = product.lots.filter(is_active=True).count()
     product.archive()
     messages.success(
@@ -137,7 +139,7 @@ def movement_list(request):
 def movement_create(request):
     form = MovementForm(request.POST or None)
     if form.is_valid():
-        movement = form.save(commit=False)
+        movement            = form.save(commit=False)
         movement.created_by = request.user
         if movement.movement_type == Movement.OUTSIDE:
             if movement.lot.quantity < movement.quantity:
@@ -159,15 +161,15 @@ def movement_create(request):
 @login_required
 @supervisor_or_admin_required
 def alerts_dashboard(request):
-    today = timezone.now().date()
-    products = Product.objects.filter(is_active=True)
-    low_stock = [p for p in products if p.is_below_min_stock()]
+    today        = timezone.now().date()
+    products     = Product.objects.filter(is_active=True)
+    low_stock    = [p for p in products if p.is_below_min_stock()]
     expiring_lots = Lot.objects.filter(
         is_active=True,
         expiration_date__lte=today + timezone.timedelta(days=30)
     ).select_related('product').order_by('expiration_date')
     return render(request, 'inventory/alerts.html', {
-        'low_stock': low_stock,
+        'low_stock':     low_stock,
         'expiring_lots': expiring_lots,
-        'today': today,
+        'today':         today,
     })
