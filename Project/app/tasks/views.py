@@ -194,10 +194,27 @@ def task_material_create(request, task_pk):
 @supervisor_or_admin_required
 @require_POST
 def task_material_delete(request, pk):
+    from app.inventory.models import Movement
     material = get_object_or_404(TaskMaterial, pk=pk)
     task_pk  = material.task.pk
+
+    # Devolver el stock al lote
+    lot           = material.lot
+    qty           = material.quantity
+    lot.quantity += qty
+    lot.save()
+
+    # Registrar movimiento de entrada por devolución
+    Movement.objects.create(
+        movement_type=Movement.INSIDE,
+        lot=lot,
+        quantity=qty,
+        reason=f'Devolución por eliminación de material en tarea: {material.task.title}',
+        created_by=request.user,
+    )
+
     material.delete()
-    messages.success(request, 'Material eliminado de la tarea.')
+    messages.success(request, f'Material eliminado y {qty} {lot.product.unit} devueltos al lote.')
     return redirect('tasks:task_detail', pk=task_pk)
 
 

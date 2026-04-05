@@ -32,7 +32,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* ── Navbar ─────────────────────────────────────────── */
+        /* ── Navbar ───────────────────────────────────────────────────── */
         .navbar-lc {
             background: rgba(13, 71, 161, 0.97) !important;
             backdrop-filter: blur(10px);
@@ -46,14 +46,14 @@
             letter-spacing: 0.5px;
         }
 
-        /* ── Contenedor principal ────────────────────────────── */
+        /* ── Contenedor principal ──────────────────────────────────────────── */
         .main-container {
             padding-top: 80px;
             padding-bottom: 2rem;
             min-height: 100vh;
         }
 
-        /* ── Page header ─────────────────────────────────────── */
+        /* ── Page header ────────────────────────────────────────────────── */
         .page-header {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
@@ -63,7 +63,7 @@
             margin-bottom: 1.5rem;
         }
 
-        /* ── Cards del dashboard ─────────────────────────────── */
+        /* ── Cards del dashboard ────────────────────────────────────────────── */
         .card-module,
         .dashboard-card {
             background: rgba(255,255,255,0.1);
@@ -97,24 +97,22 @@
             color: white;
         }
 
-        /* ── Tabla wrapper ───────────────────────────────────── */
+        /* ── Tabla wrapper ────────────────────────────────────────────────────── */
         .table-wrapper {
             border-radius: 14px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.18);
         }
 
-        /* ── Tablas ──────────────────────────────────────────── */
+        /* ── Tablas ───────────────────────────────────────────────────────────── */
         .table-lc {
             margin: 0;
-            /* resetea variables de Bootstrap para que no interfieran */
             --bs-table-bg: transparent;
             --bs-table-color: inherit;
             --bs-table-hover-bg: transparent;
             --bs-table-striped-bg: transparent;
         }
 
-        /* Fuerza fondo y texto en TODAS las celdas del thead */
         .table-lc thead tr,
         .table-lc thead th {
             --bs-table-bg: #0d47a1;
@@ -143,13 +141,12 @@
             font-size: 0.9rem;
             background-color: transparent;
         }
-        /* override Bootstrap hover que usa variable --bs-table-hover-bg */
         .table-lc.table-hover > tbody > tr:hover > * {
             --bs-table-accent-bg: #f0f4ff;
             color: #1a1a2e;
         }
 
-        /* ── Formularios ─────────────────────────────────────── */
+        /* ── Formularios ─────────────────────────────────────────────────────── */
         .form-card {
             background: rgba(255,255,255,0.08);
             backdrop-filter: blur(15px);
@@ -184,7 +181,7 @@
             box-shadow: 0 0 0 0.2rem rgba(0,176,255,0.25);
         }
 
-        /* ── Botones custom ──────────────────────────────────── */
+        /* ── Botones custom ─────────────────────────────────────────────────────── */
         .btn-lc {
             display: inline-flex;
             align-items: center;
@@ -246,7 +243,7 @@
             color: var(--lc-accent);
         }
 
-        /* ── Breadcrumb ──────────────────────────────────────── */
+        /* ── Breadcrumb ─────────────────────────────────────────────────────── */
         .breadcrumb {
             background: transparent;
             padding: 0;
@@ -262,7 +259,7 @@
             color: rgba(255,255,255,0.4);
         }
 
-        /* ── Alertas Django messages ─────────────────────────── */
+        /* ── Alertas Django messages ──────────────────────────────────────────── */
         .alert {
             border-radius: 12px;
             border: none;
@@ -273,7 +270,7 @@
         .alert-info     { background: rgba(0,176,255,0.15); border-left: 4px solid #00b0ff; color: #fff; }
         .btn-close { filter: invert(1); }
 
-        /* ── Responsive ──────────────────────────────────────── */
+        /* ── Responsive ───────────────────────────────────────────────────────────── */
         @media (max-width: 768px) {
             .main-container { padding-top: 72px; padding-left: 1rem; padding-right: 1rem; }
             .page-header { padding: 1rem; margin-bottom: 1rem; }
@@ -313,10 +310,32 @@
             {% if messages %}
             <div class="mb-3">
                 {% for msg in messages %}
-                <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
-                    {{ msg }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                {# Django usa 'error' pero Bootstrap necesita 'danger' — mapeamos aquí #}
+                {% if msg.tags == 'error' %}
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                    <i class="bi bi-x-circle-fill flex-shrink-0"></i>
+                    <span>{{ msg }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                 </div>
+                {% elif msg.tags == 'success' %}
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                    <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+                    <span>{{ msg }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+                {% elif msg.tags == 'warning' %}
+                <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                    <span>{{ msg }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+                {% else %}
+                <div class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                    <i class="bi bi-info-circle-fill flex-shrink-0"></i>
+                    <span>{{ msg }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+                {% endif %}
                 {% endfor %}
             </div>
             {% endif %}
