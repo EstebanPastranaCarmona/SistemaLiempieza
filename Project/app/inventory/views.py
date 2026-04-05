@@ -14,7 +14,7 @@ def supervisor_or_admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('users:login')
-        if not (request.user.is_admin() or request.user.is_supervisor()):
+        if not (request.user.is_admin or request.user.is_supervisor):
             messages.error(request, 'No tenés permisos para acceder a esta sección.')
             return redirect('users:dashboard')
         return view_func(request, *args, **kwargs)
@@ -22,8 +22,6 @@ def supervisor_or_admin_required(view_func):
 
 
 # ── Raíz: siempre redirige a lotes ───────────────────────────
-# Se usa redirect permanente (302) — NO cacheable, así
-# el navegador no guarda la ruta anterior.
 @login_required
 def inventory_home(request):
     return redirect('inventory:lot_list')
@@ -74,7 +72,7 @@ def lot_toggle_active(request, pk):
     return redirect('inventory:lot_list')
 
 
-# ── Productos (secundario) ─────────────────────────────────
+# ── Productos (secundario) ─────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
