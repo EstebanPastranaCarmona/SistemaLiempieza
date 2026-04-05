@@ -22,36 +22,36 @@
                 <span class="fw-semibold">Información de la tarea</span>
                 <div class="ms-auto d-flex gap-2">
 
-                    {# Botón Iniciar: SOLO el operario asignado cuando está Pendiente #}
+                    {# Botón Iniciar #}
                     {% if task.status == 'PENDING' and user == task.assigned_to %}
                     <form method="POST" action="{% url 'tasks:task_start' task.pk %}" class="d-inline">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-lc-primary">
+                        <button type="submit" class="btn-lc">
                             <i class="bi bi-play-fill me-1"></i>Iniciar
                         </button>
                     </form>
                     {% endif %}
 
-                    {# Botón Editar: admin/supervisor cuando la tarea no está validada #}
+                    {# Botón Editar #}
                     {% if task.status != 'VALIDATED' %}
                         {% if user.is_admin or user.is_supervisor %}
-                        <a href="{% url 'tasks:task_edit' task.pk %}" class="btn btn-sm btn-lc-primary">
+                        <a href="{% url 'tasks:task_edit' task.pk %}" class="btn-lc">
                             <i class="bi bi-pencil-fill me-1"></i>Editar
                         </a>
                         {% endif %}
                     {% endif %}
 
-                    {# Botón Enviar a revisión: operario asignado cuando está En progreso #}
+                    {# Botón Enviar a revisión #}
                     {% if task.status == 'IN_PROGRESS' and user == task.assigned_to %}
-                    <a href="{% url 'tasks:task_complete' task.pk %}" class="btn btn-sm btn-lc-primary">
+                    <a href="{% url 'tasks:task_complete' task.pk %}" class="btn-lc">
                         <i class="bi bi-send-fill me-1"></i>Enviar a revisión
                     </a>
                     {% endif %}
 
-                    {# Botón Revisar: admin/supervisor cuando está Pendiente de revisión #}
+                    {# Botón Revisar #}
                     {% if task.status == 'PENDING_REVIEW' %}
                         {% if user.is_admin or user.is_supervisor %}
-                        <a href="{% url 'tasks:task_review' task.pk %}" class="btn btn-sm btn-lc-primary">
+                        <a href="{% url 'tasks:task_review' task.pk %}" class="btn-lc">
                             <i class="bi bi-patch-check-fill me-1"></i>Revisar
                         </a>
                         {% endif %}
@@ -115,7 +115,7 @@
                 <i class="bi bi-box-seam-fill fs-5"></i>
                 <span class="fw-semibold">Materiales asignados</span>
                 {% if user.is_admin or user.is_supervisor %}
-                <a href="{% url 'tasks:task_material_create' task.pk %}" class="btn btn-sm btn-lc-primary ms-auto">
+                <a href="{% url 'tasks:task_material_create' task.pk %}" class="btn-lc ms-auto">
                     <i class="bi bi-plus-lg me-1"></i>Agregar
                 </a>
                 {% endif %}
@@ -167,7 +167,7 @@
                 <i class="bi bi-images fs-5"></i>
                 <span class="fw-semibold">Evidencias</span>
                 {% if task.status != 'VALIDATED' %}
-                <a href="{% url 'tasks:evidence_create' task.pk %}" class="btn btn-sm btn-lc-primary ms-auto">
+                <a href="{% url 'tasks:evidence_create' task.pk %}" class="btn-lc ms-auto">
                     <i class="bi bi-upload me-1"></i>Subir
                 </a>
                 {% endif %}
