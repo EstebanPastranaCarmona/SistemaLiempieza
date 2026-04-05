@@ -34,7 +34,11 @@ def task_list(request):
         tasks = Task.objects.all().select_related('client', 'location', 'assigned_to')
 
     if status:
+        # Filtro explícito: mostrar lo que el usuario pidió
         tasks = tasks.filter(status=status)
+    else:
+        # Por defecto: ocultar las validadas
+        tasks = tasks.exclude(status=Task.VALIDATED)
 
     tasks = tasks.order_by('scheduled_date', 'scheduled_time')
     today = timezone.now().date()
@@ -85,15 +89,16 @@ def task_edit(request, pk):
     return render(request, 'tasks/task_form.html', {'form': form, 'action': 'Editar', 'task': task})
 
 
-# ── Iniciar tarea (operario) ─────────────────────────────────
+# ── Iniciar tarea (SOLO el operario asignado) ────────────────
 
 @login_required
 @require_POST
 def task_start(request, pk):
     task = get_object_or_404(Task, pk=pk)
-    if request.user.is_operario and task.assigned_to != request.user:
-        messages.error(request, 'No podés iniciar esta tarea.')
-        return redirect('tasks:task_list')
+    # Solo el operario asignado puede iniciar la tarea
+    if task.assigned_to != request.user:
+        messages.error(request, 'Solo el operario asignado puede iniciar esta tarea.')
+        return redirect('tasks:task_detail', pk=pk)
     if task.status != Task.PENDING:
         messages.info(request, 'La tarea no está en estado Pendiente.')
         return redirect('tasks:task_detail', pk=pk)
@@ -103,7 +108,7 @@ def task_start(request, pk):
     return redirect('tasks:task_detail', pk=pk)
 
 
-# ── Enviar a revisión (operario) ─────────────────────────────
+# ── Enviar a revisión (operario asignado) ────────────────────
 
 @login_required
 def task_complete(request, pk):
@@ -114,7 +119,6 @@ def task_complete(request, pk):
     if task.status not in (Task.PENDING, Task.IN_PROGRESS):
         messages.info(request, 'Esta tarea no puede enviarse a revisión en su estado actual.')
         return redirect('tasks:task_detail', pk=pk)
-    # Debe tener al menos una evidencia
     if not task.evidences.exists():
         messages.error(request, 'Debés subir al menos una evidencia antes de enviar la tarea a revisión.')
         return redirect('tasks:task_detail', pk=pk)
@@ -198,7 +202,6 @@ def task_review(request, task_pk):
         messages.error(request, 'Solo se pueden revisar tareas con estado Pendiente de revisión.')
         return redirect('tasks:task_detail', pk=task_pk)
     if hasattr(task, 'review'):
-        # Eliminar revisión anterior para permitir re-revisión tras rechazo
         task.review.delete()
 
     form = TaskReviewForm(request.POST or None)

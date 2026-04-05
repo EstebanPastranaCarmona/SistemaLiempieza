@@ -13,17 +13,19 @@
 </div>
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-    <form method="GET" class="d-flex gap-2">
+    <form method="GET" class="d-flex gap-2 align-items-center">
         <select name="status" class="form-select" onchange="this.form.submit()"
                 style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:10px;width:auto;">
-            <option value="" style="background:#1a237e;">Todos los estados</option>
+            <option value="" style="background:#1a237e;">Activas (sin validadas)</option>
             {% for val, label in status_choices %}
             <option value="{{ val }}" style="background:#1a237e;"
                     {% if status == val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
         {% if status %}
-        <a href="{% url 'tasks:task_list' %}" class="btn-lc-outline"><i class="bi bi-x-lg"></i></a>
+        <a href="{% url 'tasks:task_list' %}" class="btn-lc-outline" title="Limpiar filtro">
+            <i class="bi bi-x-lg"></i>
+        </a>
         {% endif %}
     </form>
     {% if user.is_admin or user.is_supervisor %}
@@ -34,6 +36,12 @@
     </div>
     {% endif %}
 </div>
+
+{% if not status %}
+<p class="mb-3" style="font-size:.85rem;opacity:.65;">
+    <i class="bi bi-info-circle me-1"></i>Las tareas validadas están ocultas. Filtrá por <strong>Validada</strong> para verlas.
+</p>
+{% endif %}
 
 <div class="table-wrapper">
     <table class="table table-lc table-hover mb-0">
@@ -51,7 +59,7 @@
         <tbody>
             {% for task in tasks %}
             <tr>
-                <td class="ps-3 text-muted">{{ task.pk }}</td>
+                <td class="ps-3 opacity-75">{{ task.pk }}</td>
                 <td class="fw-semibold">{{ task.title }}</td>
                 <td>{{ task.client.name }}</td>
                 <td>{{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"—" }}</td>
@@ -72,22 +80,26 @@
                 </td>
                 <td>
                     <div class="d-flex gap-1">
-                        <a href="{% url 'tasks:task_detail' task.pk %}" class="btn btn-sm btn-lc-primary">
+                        <a href="{% url 'tasks:task_detail' task.pk %}" class="btn btn-sm btn-lc"
+                           title="Ver detalle">
                             <i class="bi bi-eye-fill"></i>
                         </a>
                         {% if user.is_admin or user.is_supervisor %}
-                        <a href="{% url 'tasks:task_edit' task.pk %}" class="btn btn-sm btn-lc-primary">
+                        {% if task.status != 'VALIDATED' %}
+                        <a href="{% url 'tasks:task_edit' task.pk %}" class="btn btn-sm btn-lc"
+                           title="Editar">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
+                        {% endif %}
                         {% endif %}
                     </div>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center py-5" style="background:white;color:#888;">
+                <td colspan="7" class="text-center py-5 opacity-75">
                     <i class="bi bi-clipboard-x fs-3 d-block mb-2"></i>
-                    No hay tareas registradas.
+                    No hay tareas en este estado.
                 </td>
             </tr>
             {% endfor %}

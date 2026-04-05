@@ -21,37 +21,34 @@
                 <i class="bi bi-info-circle-fill fs-5"></i>
                 <span class="fw-semibold">Información de la tarea</span>
                 <div class="ms-auto d-flex gap-2">
-                    {# Botón Iniciar: solo si PENDING y es el operario asignado o admin/supervisor #}
-                    {% if task.status == 'PENDING' %}
-                        {% if user == task.assigned_to or user.is_admin or user.is_supervisor %}
-                        <form method="POST" action="{% url 'tasks:task_start' task.pk %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-lc">
-                                <i class="bi bi-play-fill me-1"></i>Iniciar
-                            </button>
-                        </form>
-                        {% endif %}
+
+                    {# Botón Iniciar: SOLO el operario asignado cuando está Pendiente #}
+                    {% if task.status == 'PENDING' and user == task.assigned_to %}
+                    <form method="POST" action="{% url 'tasks:task_start' task.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-lc">
+                            <i class="bi bi-play-fill me-1"></i>Iniciar
+                        </button>
+                    </form>
                     {% endif %}
 
-                    {# Botón Editar: solo admin/supervisor y tarea activa #}
-                    {% if task.status == 'PENDING' or task.status == 'IN_PROGRESS' %}
+                    {# Botón Editar: admin/supervisor cuando la tarea no está validada #}
+                    {% if task.status != 'VALIDATED' %}
                         {% if user.is_admin or user.is_supervisor %}
-                        <a href="{% url 'tasks:task_edit' task.pk %}" class="btn btn-sm btn-lc-primary">
+                        <a href="{% url 'tasks:task_edit' task.pk %}" class="btn btn-sm btn-lc">
                             <i class="bi bi-pencil-fill me-1"></i>Editar
                         </a>
                         {% endif %}
                     {% endif %}
 
-                    {# Botón Enviar a revisión: operario asignado o admin/supervisor, tarea en progreso #}
-                    {% if task.status == 'IN_PROGRESS' %}
-                        {% if user == task.assigned_to or user.is_admin or user.is_supervisor %}
-                        <a href="{% url 'tasks:task_complete' task.pk %}" class="btn btn-sm btn-lc-primary">
-                            <i class="bi bi-send-fill me-1"></i>Enviar a revisión
-                        </a>
-                        {% endif %}
+                    {# Botón Enviar a revisión: operario asignado cuando está En progreso #}
+                    {% if task.status == 'IN_PROGRESS' and user == task.assigned_to %}
+                    <a href="{% url 'tasks:task_complete' task.pk %}" class="btn btn-sm btn-lc">
+                        <i class="bi bi-send-fill me-1"></i>Enviar a revisión
+                    </a>
                     {% endif %}
 
-                    {# Botón Revisar: solo admin/supervisor y pendiente de revisión #}
+                    {# Botón Revisar: admin/supervisor cuando está Pendiente de revisión #}
                     {% if task.status == 'PENDING_REVIEW' %}
                         {% if user.is_admin or user.is_supervisor %}
                         <a href="{% url 'tasks:task_review' task.pk %}" class="btn btn-sm btn-lc">
@@ -137,14 +134,14 @@
                         {% for mat in task.materials.all %}
                         <tr>
                             <td class="ps-3 fw-semibold">{{ mat.lot.product.name }}</td>
-                            <td class="text-muted">#{{ mat.lot.pk }}</td>
-                            <td>{{ mat.quantity }} <small class="text-muted">{{ mat.lot.product.unit }}</small></td>
+                            <td class="opacity-75">#{{ mat.lot.pk }}</td>
+                            <td>{{ mat.quantity }} <small class="opacity-75">{{ mat.lot.product.unit }}</small></td>
                             {% if user.is_admin or user.is_supervisor %}
                             <td>
                                 <form method="POST" action="{% url 'tasks:task_material_delete' mat.pk %}" style="display:inline;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-lc-primary"
-                                            style="background:rgba(220,53,69,.15);border-color:rgba(220,53,69,.4);color:#dc3545 !important;"
+                                    <button type="submit" class="btn btn-sm btn-lc"
+                                            style="background:rgba(220,53,69,.2);border-color:rgba(220,53,69,.5);color:#ff6b6b !important;"
                                             onclick="return confirm('¿Eliminar este material?')">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
@@ -154,7 +151,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center py-3" style="background:white;color:#888;">Sin materiales asignados.</td>
+                            <td colspan="4" class="text-center py-3 opacity-75">Sin materiales asignados.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -181,16 +178,25 @@
                 <div class="mb-3 p-2" style="border:1px solid rgba(255,255,255,.15); border-radius:8px;">
                     {% if ev.file %}
                         {% if ev.is_video %}
-                        <video src="{{ ev.file.url }}" controls class="img-fluid rounded mb-2" style="max-height:180px;width:100%;"></video>
+                        <video src="{{ ev.file.url }}" controls
+                               class="rounded mb-2"
+                               style="max-height:200px;width:100%;object-fit:cover;"></video>
                         {% else %}
-                        <img src="{{ ev.file.url }}" alt="Evidencia" class="img-fluid rounded mb-2" style="max-height:180px;object-fit:cover;width:100%;" loading="lazy">
+                        <a href="{{ ev.file.url }}" target="_blank" rel="noopener">
+                            <img src="{{ ev.file.url }}" alt="Evidencia"
+                                 class="rounded mb-2"
+                                 style="max-height:200px;object-fit:cover;width:100%;display:block;"
+                                 loading="lazy">
+                        </a>
                         {% endif %}
                     {% endif %}
                     {% if ev.note %}<p class="mb-1 small">{{ ev.note }}</p>{% endif %}
                     <small class="opacity-75">{{ ev.uploaded_by.username }} — {{ ev.uploaded_at|date:"d/m/Y H:i" }}</small>
                 </div>
                 {% empty %}
-                <p class="text-center opacity-75 py-3"><i class="bi bi-images fs-3 d-block mb-1"></i>Sin evidencias.</p>
+                <p class="text-center opacity-75 py-3">
+                    <i class="bi bi-images fs-3 d-block mb-1"></i>Sin evidencias aún.
+                </p>
                 {% endfor %}
             </div>
         </div>
