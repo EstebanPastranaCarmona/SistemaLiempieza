@@ -62,7 +62,7 @@ def client_toggle_active(request, pk):
 @admin_required
 def location_list(request, client_pk):
     client = get_object_or_404(Client, pk=client_pk)
-    locations = client.locations.filter(is_active=True)
+    locations = client.locations.all()
     return render(request, 'clients/location_list.html', {'client': client, 'locations': locations})
 
 
@@ -77,9 +77,11 @@ def locations_json(request, client_pk):
 @admin_required
 def location_create(request, client_pk):
     client = get_object_or_404(Client, pk=client_pk)
-    form = ClientLocationForm(request.POST or None, initial={'client': client})
+    form = ClientLocationForm(request.POST or None)
     if form.is_valid():
-        form.save()
+        location = form.save(commit=False)
+        location.client = client          # asignamos el cliente desde la URL
+        location.save()
         messages.success(request, 'Ubicación agregada.')
         return redirect('clients:location_list', client_pk=client.pk)
     return render(request, 'clients/location_form.html', {'form': form, 'action': 'Agregar', 'client': client})
@@ -91,7 +93,9 @@ def location_edit(request, pk):
     location = get_object_or_404(ClientLocation, pk=pk)
     form = ClientLocationForm(request.POST or None, instance=location)
     if form.is_valid():
-        form.save()
+        loc = form.save(commit=False)
+        loc.client = location.client      # protegemos que no cambie de cliente
+        loc.save()
         messages.success(request, 'Ubicación actualizada.')
         return redirect('clients:location_list', client_pk=location.client.pk)
     return render(request, 'clients/location_form.html', {'form': form, 'action': 'Editar', 'client': location.client})

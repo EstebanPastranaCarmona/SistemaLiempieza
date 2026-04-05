@@ -58,7 +58,7 @@ class ClientForm(forms.ModelForm):
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
         if not phone:
-            return phone   # opcional, no falla si está vacío
+            return phone
         import re
         digits = re.sub(r'[^0-9]', '', phone)
         if len(digits) < 7 or len(digits) > 15:
@@ -69,17 +69,16 @@ class ClientForm(forms.ModelForm):
 
 
 class ClientLocationForm(forms.ModelForm):
+    """Formulario de ubicación — el campo client se asigna en la vista, no se muestra al usuario."""
     class Meta:
         model  = ClientLocation
-        fields = ['client', 'name', 'address', 'notes']
+        fields = ['name', 'address', 'notes']   # 'client' se asigna en la vista
         labels = {
-            'client':  'Cliente',
             'name':    'Nombre de la ubicación',
             'address': 'Dirección',
             'notes':   'Notas adicionales (opcional)',
         }
         widgets = {
-            'client':  forms.Select(attrs={'class': 'form-select'}),
             'name':    forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
             'notes':   forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),

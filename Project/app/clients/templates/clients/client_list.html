@@ -23,7 +23,7 @@
             <i class="bi bi-building-dash me-1"></i>Inactivos
         </a>
         <a href="{% url 'clients:client_create' %}" class="btn-lc">
-            <i class="bi bi-plus-lg me-1"></i>Nuevo
+            <i class="bi bi-plus-lg me-1"></i>Nuevo Cliente
         </a>
     </div>
 </div>
@@ -54,15 +54,20 @@
                         <span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i>Inactivo</span>
                     {% endif %}
                 </td>
-                <td class="d-flex gap-1">
-                    <a href="{% url 'clients:client_edit' c.pk %}" class="btn btn-sm btn-lc-primary">
+                <td class="d-flex gap-1 flex-wrap">
+                    <a href="{% url 'clients:location_list' c.pk %}" class="btn btn-sm btn-lc-outline"
+                       title="Ver ubicaciones">
+                        <i class="bi bi-geo-alt-fill me-1"></i>{{ c.locations.count }}
+                    </a>
+                    <a href="{% url 'clients:client_edit' c.pk %}" class="btn btn-sm btn-lc-primary"
+                       title="Editar cliente">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                     <form method="POST" action="{% url 'clients:client_toggle' c.pk %}" style="display:inline;">
                         {% csrf_token %}
                         <button type="submit"
                                 class="btn btn-sm {% if c.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
-                                onclick="return confirm('{% if c.is_active %}¿Desactivar al cliente &quot;{{ c.name }}&quot;? Ya no aparecerá en la lista activa.{% else %}¿Activar al cliente &quot;{{ c.name }}&quot;?{% endif %}')">
+                                onclick="return confirm('{% if c.is_active %}¿Desactivar al cliente &quot;{{ c.name }}&quot;?{% else %}¿Activar al cliente &quot;{{ c.name }}&quot;?{% endif %}')">
                             <i class="bi bi-{% if c.is_active %}building-dash{% else %}building-check{% endif %}"></i>
                         </button>
                     </form>
