@@ -37,7 +37,7 @@ def dashboard(request):
 def admin_required(view_func):
     @wraps(view_func)  
     def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_admin():
+        if not request.user.is_authenticated or not request.user.is_admin:
             messages.error(request, 'No tienes permisos para acceder a esta sección.')
             return redirect('users:dashboard')
         return view_func(request, *args, **kwargs)
@@ -120,4 +120,3 @@ def user_toggle_active(request, pk):
     estado = 'activado' if user.is_active else 'desactivado'
     messages.success(request, f'Usuario {user.username} {estado}.')
     return redirect('users:user_list')
-

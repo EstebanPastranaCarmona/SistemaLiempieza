@@ -14,7 +14,7 @@ def supervisor_or_admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('users:login')
-        if not (request.user.is_admin() or request.user.is_supervisor()):
+        if not (request.user.is_admin or request.user.is_supervisor):
             messages.error(request, 'No tenés permisos para acceder a esta sección.')
             return redirect('users:dashboard')
         return view_func(request, *args, **kwargs)
@@ -29,7 +29,7 @@ def task_list(request):
     status = request.GET.get('status', '')
 
     # Operarios solo ven sus propias tareas
-    if user.is_operario():
+    if user.is_operario:
         tasks = Task.objects.filter(assigned_to=user).select_related('client', 'location', 'assigned_to')
     else:
         tasks = Task.objects.all().select_related('client', 'location', 'assigned_to')
@@ -54,7 +54,7 @@ def task_list(request):
 def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk)
     # Operarios solo pueden ver sus propias tareas
-    if request.user.is_operario() and task.assigned_to != request.user:
+    if request.user.is_operario and task.assigned_to != request.user:
         messages.error(request, 'No tenés acceso a esta tarea.')
         return redirect('tasks:task_list')
     return render(request, 'tasks/task_detail.html', {'task': task})
@@ -93,7 +93,7 @@ def task_edit(request, pk):
 def task_complete(request, pk):
     task = get_object_or_404(Task, pk=pk)
     # Solo el asignado o admin/supervisor puede completarla
-    if request.user.is_operario() and task.assigned_to != request.user:
+    if request.user.is_operario and task.assigned_to != request.user:
         messages.error(request, 'No podés completar esta tarea.')
         return redirect('tasks:task_list')
     if task.status == Task.VALIDATED:
@@ -114,7 +114,7 @@ def task_complete(request, pk):
 @login_required
 def evidence_create(request, task_pk):
     task = get_object_or_404(Task, pk=task_pk)
-    if request.user.is_operario() and task.assigned_to != request.user:
+    if request.user.is_operario and task.assigned_to != request.user:
         messages.error(request, 'No podés subir evidencia para esta tarea.')
         return redirect('tasks:task_list')
 
