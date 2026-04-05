@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Tarea #{{ task.pk }}{% endblock %}
+
+{% block body %}
+<!-- Header -->
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4><i class="bi bi-clipboard-check-fill me-2"></i>{{ task.title }}</h4>
+        <small class="opacity-75">{{ task.client.name }}{% if task.location %} — {{ task.location.name }}{% endif %}</small>
+    </div>
+    <a href="{% url 'tasks:task_list' %}" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-arrow-left me-1"></i>Tareas
+    </a>
+</div>
+
+<!-- Mensajes -->
+{% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <!-- Columna izquierda: Info general -->
+    <div class="col-md-7">
+        <div class="card form-card mb-4">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-info-circle-fill fs-5"></i>
+                <span class="fw-600">Información de la tarea</span>
+                <div class="ms-auto d-flex gap-2">
+                    {% if task.status == 'PENDING' or task.status == 'IN_PROGRESS' %}
+                        {% if user.is_admin or user.is_supervisor %}
+                        <a href="{% url 'tasks:task_edit' task.pk %}" class="btn btn-sm btn-lc-primary">
+                            <i class="bi bi-pencil-fill me-1"></i>Editar
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'tasks:task_complete' task.pk %}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-check-lg me-1"></i>Completar
+                        </a>
+                    {% endif %}
+                    {% if task.status == 'COMPLETED' and not task.review %}
+                        {% if user.is_admin or user.is_supervisor %}
+                        <a href="{% url 'tasks:task_review' task.pk %}" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-star-fill me-1"></i>Revisar
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Estado</small>
+                        {% if task.status == 'PENDING' %}
+                            <span class="badge bg-secondary fs-6">Pendiente</span>
+                        {% elif task.status == 'IN_PROGRESS' %}
+                            <span class="badge bg-warning text-dark fs-6">En progreso</span>
+                        {% elif task.status == 'COMPLETED' %}
+                            <span class="badge bg-info text-dark fs-6">Completada</span>
+                        {% elif task.status == 'VALIDATED' %}
+                            <span class="badge bg-success fs-6">Validada</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Fecha programada</small>
+                        <strong>{{ task.scheduled_date }}{% if task.scheduled_time %} a las {{ task.scheduled_time|time:"H:i" }}{% endif %}</strong>
+                        {% if task.is_overdue %}<span class="badge bg-danger ms-1">Atrasada</span>{% endif %}
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Cliente</small>
+                        <strong>{{ task.client.name }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Ubicación</small>
+                        <strong>{{ task.location.name|default:"—" }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Asignado a</small>
+                        <strong>{{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"—" }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Creado por</small>
+                        <strong>{{ task.created_by.get_full_name|default:task.created_by.username|default:"—" }}</strong>
+                    </div>
+                    {% if task.description %}
+                    <div class="col-12">
+                        <small class="text-muted d-block">Descripción</small>
+                        <p class="mb-0">{{ task.description }}</p>
+                    </div>
+                    {% endif %}
+                    {% if task.notes %}
+                    <div class="col-12">
+                        <small class="text-muted d-block">Observaciones</small>
+                        <p class="mb-0">{{ task.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Materiales -->
+        <div class="card form-card mb-4">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-box-seam-fill fs-5"></i>
+                <span class="fw-600">Materiales asignados</span>
+                {% if user.is_admin or user.is_supervisor %}
+                <a href="{% url 'tasks:task_material_create' task.pk %}" class="btn-lc btn-sm ms-auto">
+                    <i class="bi bi-plus-lg me-1"></i>Agregar
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-lc mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">Producto</th>
+                            <th>Lote #</th>
+                            <th>Cantidad</th>
+                            {% if user.is_admin or user.is_supervisor %}<th></th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mat in task.materials.all %}
+                        <tr>
+                            <td class="ps-3 fw-semibold">{{ mat.lot.product.name }}</td>
+                            <td class="text-muted">#{{ mat.lot.pk }}</td>
+                            <td>{{ mat.quantity }} <small class="text-muted">{{ mat.lot.product.unit }}</small></td>
+                            {% if user.is_admin or user.is_supervisor %}
+                            <td>
+                                <form method="POST" action="{% url 'tasks:task_material_delete' mat.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('¿Eliminar este material?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3" style="background:white; color:#888;">
+                                Sin materiales asignados.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna derecha: Evidencias y revisión -->
+    <div class="col-md-5">
+        <!-- Evidencias -->
+        <div class="card form-card mb-4">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-images fs-5"></i>
+                <span class="fw-600">Evidencias</span>
+                {% if task.status != 'VALIDATED' %}
+                <a href="{% url 'tasks:evidence_create' task.pk %}" class="btn-lc btn-sm ms-auto">
+                    <i class="bi bi-upload me-1"></i>Subir
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body p-3">
+                {% for ev in task.evidences.all %}
+                <div class="mb-3 p-2" style="border:1px solid rgba(255,255,255,.1); border-radius:8px;">
+                    {% if ev.image %}
+                    <img src="{{ ev.image.url }}" alt="Evidencia" class="img-fluid rounded mb-2" style="max-height:180px; object-fit:cover; width:100%;">
+                    {% endif %}
+                    {% if ev.note %}<p class="mb-1 small">{{ ev.note }}</p>{% endif %}
+                    <small class="text-muted">{{ ev.uploaded_by.username }} — {{ ev.uploaded_at|date:"d/m/Y H:i" }}</small>
+                </div>
+                {% empty %}
+                <p class="text-center text-muted py-3"><i class="bi bi-images fs-3 d-block mb-1"></i>Sin evidencias.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Revisión del supervisor -->
+        {% if task.review %}
+        <div class="card form-card">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-patch-check-fill fs-5"></i>
+                <span class="fw-600">Revisión del supervisor</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="mb-2">
+                    {% if task.review.result == 'APPROVED' %}
+                        <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>Aprobada</span>
+                    {% else %}
+                        <span class="badge bg-danger fs-6"><i class="bi bi-x-circle me-1"></i>Rechazada</span>
+                    {% endif %}
+                </div>
+                {% if task.review.comment %}
+                <p class="mb-1 small">{{ task.review.comment }}</p>
+                {% endif %}
+                <small class="text-muted">
+                    {{ task.review.reviewed_by.username }} — {{ task.review.reviewed_at|date:"d/m/Y H:i" }}
+                </small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
