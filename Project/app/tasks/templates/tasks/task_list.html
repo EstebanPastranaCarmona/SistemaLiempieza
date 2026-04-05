@@ -12,15 +12,13 @@
     </a>
 </div>
 
-<!-- Acciones y filtros -->
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-    {% if not user.is_operario %}
+    {% if user.is_admin or user.is_supervisor %}
     <a href="{% url 'tasks:task_create' %}" class="btn-lc">
         <i class="bi bi-plus-lg me-1"></i>Nueva Tarea
     </a>
     {% endif %}
 
-    <!-- Filtro por estado -->
     <form method="GET" class="d-flex gap-2 ms-auto">
         <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto;">
             <option value="">Todos los estados</option>
@@ -73,7 +71,7 @@
                         <a href="{% url 'tasks:task_detail' task.pk %}" class="btn btn-sm btn-lc-primary">
                             <i class="bi bi-eye-fill"></i>
                         </a>
-                        {% if not user.is_operario %}
+                        {% if user.is_admin or user.is_supervisor %}
                         <a href="{% url 'tasks:task_edit' task.pk %}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-pencil-fill"></i>
                         </a>

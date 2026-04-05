@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import Client, ClientLocation
 from .forms import ClientForm, ClientLocationForm
@@ -63,6 +64,13 @@ def location_list(request, client_pk):
     client = get_object_or_404(Client, pk=client_pk)
     locations = client.locations.filter(is_active=True)
     return render(request, 'clients/location_list.html', {'client': client, 'locations': locations})
+
+
+@login_required
+def locations_json(request, client_pk):
+    """Endpoint AJAX: devuelve las ubicaciones activas de un cliente en JSON."""
+    locations = ClientLocation.objects.filter(client_id=client_pk, is_active=True).values('id', 'name')
+    return JsonResponse(list(locations), safe=False)
 
 
 @login_required

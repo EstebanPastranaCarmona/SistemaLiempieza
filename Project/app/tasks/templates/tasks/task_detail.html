@@ -2,7 +2,6 @@
 {% block title %}Tarea #{{ task.pk }}{% endblock %}
 
 {% block body %}
-<!-- Header -->
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h4><i class="bi bi-clipboard-check-fill me-2"></i>{{ task.title }}</h4>
@@ -13,7 +12,6 @@
     </a>
 </div>
 
-<!-- Mensajes -->
 {% if messages %}
     {% for msg in messages %}
     <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
@@ -24,7 +22,6 @@
 {% endif %}
 
 <div class="row g-4">
-    <!-- Columna izquierda: Info general -->
     <div class="col-md-7">
         <div class="card form-card mb-4">
             <div class="card-header d-flex align-items-center gap-2">
@@ -41,11 +38,13 @@
                             <i class="bi bi-check-lg me-1"></i>Completar
                         </a>
                     {% endif %}
-                    {% if task.status == 'COMPLETED' and not task.review %}
-                        {% if user.is_admin or user.is_supervisor %}
-                        <a href="{% url 'tasks:task_review' task.pk %}" class="btn btn-sm btn-outline-warning">
-                            <i class="bi bi-star-fill me-1"></i>Revisar
-                        </a>
+                    {% if task.status == 'COMPLETED' %}
+                        {% if not task.review %}
+                            {% if user.is_admin or user.is_supervisor %}
+                            <a href="{% url 'tasks:task_review' task.pk %}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-star-fill me-1"></i>Revisar
+                            </a>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </div>
@@ -101,7 +100,6 @@
             </div>
         </div>
 
-        <!-- Materiales -->
         <div class="card form-card mb-4">
             <div class="card-header d-flex align-items-center gap-2">
                 <i class="bi bi-box-seam-fill fs-5"></i>
@@ -142,9 +140,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center py-3" style="background:white; color:#888;">
-                                Sin materiales asignados.
-                            </td>
+                            <td colspan="4" class="text-center py-3" style="background:white; color:#888;">Sin materiales asignados.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -153,9 +149,7 @@
         </div>
     </div>
 
-    <!-- Columna derecha: Evidencias y revisión -->
     <div class="col-md-5">
-        <!-- Evidencias -->
         <div class="card form-card mb-4">
             <div class="card-header d-flex align-items-center gap-2">
                 <i class="bi bi-images fs-5"></i>
@@ -181,7 +175,6 @@
             </div>
         </div>
 
-        <!-- Revisión del supervisor -->
         {% if task.review %}
         <div class="card form-card">
             <div class="card-header d-flex align-items-center gap-2">
@@ -196,12 +189,8 @@
                         <span class="badge bg-danger fs-6"><i class="bi bi-x-circle me-1"></i>Rechazada</span>
                     {% endif %}
                 </div>
-                {% if task.review.comment %}
-                <p class="mb-1 small">{{ task.review.comment }}</p>
-                {% endif %}
-                <small class="text-muted">
-                    {{ task.review.reviewed_by.username }} — {{ task.review.reviewed_at|date:"d/m/Y H:i" }}
-                </small>
+                {% if task.review.comment %}<p class="mb-1 small">{{ task.review.comment }}</p>{% endif %}
+                <small class="text-muted">{{ task.review.reviewed_by.username }} — {{ task.review.reviewed_at|date:"d/m/Y H:i" }}</small>
             </div>
         </div>
         {% endif %}

@@ -83,7 +83,6 @@
 </div>
 
 <script>
-// Carga dinámica de ubicaciones según el cliente seleccionado
 document.getElementById('id_client').addEventListener('change', function() {
     const clientId = this.value;
     const locationSelect = document.getElementById('id_location');
@@ -92,7 +91,7 @@ document.getElementById('id_client').addEventListener('change', function() {
         locationSelect.innerHTML = '<option value="">— Seleccionar ubicación (opcional) —</option>';
         return;
     }
-    fetch(`/clientes/${clientId}/ubicaciones/`)
+    fetch(`/clientes/${clientId}/ubicaciones/json/`)
         .then(r => r.json())
         .then(data => {
             locationSelect.innerHTML = '<option value="">— Seleccionar ubicación (opcional) —</option>';
