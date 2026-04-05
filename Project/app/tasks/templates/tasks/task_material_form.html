@@ -14,15 +14,6 @@
             </ol>
         </nav>
 
-        {% if messages %}
-        {% for msg in messages %}
-        <div class="alert {% if msg.tags == 'error' %}alert-danger{% elif msg.tags == 'success' %}alert-success{% elif msg.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} d-flex align-items-center gap-2 mb-3" role="alert">
-            <i class="bi {% if msg.tags == 'error' %}bi-x-circle-fill{% elif msg.tags == 'success' %}bi-check-circle-fill{% elif msg.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} flex-shrink-0"></i>
-            <span>{{ msg }}</span>
-        </div>
-        {% endfor %}
-        {% endif %}
-
         <div class="card form-card">
             <div class="card-header d-flex align-items-center gap-2">
                 <i class="bi bi-box-seam-fill fs-5"></i>
