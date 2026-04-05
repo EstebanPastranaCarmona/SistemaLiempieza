@@ -4,15 +4,15 @@ from django.utils import timezone
 
 class Task(models.Model):
     # ── Estados ───────────────────────────────────────────────
-    PENDING    = 'PENDING'
-    IN_PROGRESS = 'IN_PROGRESS'
-    COMPLETED  = 'COMPLETED'
-    VALIDATED  = 'VALIDATED'
+    PENDING        = 'PENDING'
+    IN_PROGRESS    = 'IN_PROGRESS'
+    PENDING_REVIEW = 'PENDING_REVIEW'
+    VALIDATED      = 'VALIDATED'
     STATUS_CHOICES = [
-        (PENDING,     'Pendiente'),
-        (IN_PROGRESS, 'En progreso'),
-        (COMPLETED,   'Completada'),
-        (VALIDATED,   'Validada'),
+        (PENDING,        'Pendiente'),
+        (IN_PROGRESS,    'En progreso'),
+        (PENDING_REVIEW, 'Pendiente de revisión'),
+        (VALIDATED,      'Validada'),
     ]
 
     title       = models.CharField(max_length=150, verbose_name='Título')
@@ -75,15 +75,21 @@ class TaskMaterial(models.Model):
 
 
 class Evidence(models.Model):
-    """Evidencia (imagen + nota) subida al completar una tarea."""
-    task       = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='evidences', verbose_name='Tarea')
-    image      = models.ImageField(upload_to='evidences/', blank=True, null=True, verbose_name='Imagen')
-    note       = models.TextField(blank=True, verbose_name='Nota')
+    """Evidencia (imagen o video + nota) subida al completar una tarea."""
+    task        = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='evidences', verbose_name='Tarea')
+    file        = models.FileField(upload_to='evidences/', blank=True, null=True, verbose_name='Archivo')
+    note        = models.TextField(blank=True, verbose_name='Nota')
     uploaded_by = models.ForeignKey(
         'users.User', on_delete=models.SET_NULL,
         null=True, related_name='evidences', verbose_name='Subido por'
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def is_video(self):
+        if self.file:
+            name = self.file.name.lower()
+            return name.endswith(('.mp4', '.webm', '.ogg', '.mov', '.avi'))
+        return False
 
     def __str__(self):
         return f'Evidencia #{self.pk} — {self.task.title}'
@@ -95,7 +101,7 @@ class Evidence(models.Model):
 
 
 class TaskReview(models.Model):
-    """Validación del supervisor sobre una tarea completada."""
+    """Validación del supervisor sobre una tarea pendiente de revisión."""
     APPROVED = 'APPROVED'
     REJECTED = 'REJECTED'
     RESULT_CHOICES = [(APPROVED, 'Aprobada'), (REJECTED, 'Rechazada')]

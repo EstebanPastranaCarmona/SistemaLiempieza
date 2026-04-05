@@ -23,7 +23,6 @@ class TaskForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Solo mostrar operarios y supervisores en asignación
         operario_group = Group.objects.filter(name__in=['Operario', 'Supervisor'])
         self.fields['assigned_to'].queryset = User.objects.filter(
             groups__in=operario_group, is_active=True
@@ -34,7 +33,6 @@ class TaskForm(forms.ModelForm):
         self.fields['location'].required = False
         self.fields['location'].empty_label = '— Seleccionar ubicación (opcional) —'
 
-        # Si ya hay cliente seleccionado (edición), cargar sus ubicaciones
         if 'client' in self.data:
             try:
                 client_id = int(self.data.get('client'))
@@ -68,11 +66,16 @@ class TaskMaterialForm(forms.ModelForm):
 class EvidenceForm(forms.ModelForm):
     class Meta:
         model  = Evidence
-        fields = ['image', 'note']
+        fields = ['file', 'note']
         widgets = {
-            'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'note':  forms.Textarea(attrs={'class': 'form-control', 'rows': 3,
-                                           'placeholder': 'Descripción de la evidencia...'}),
+            'file': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*,video/*'
+            }),
+            'note': forms.Textarea(attrs={
+                'class': 'form-control', 'rows': 3,
+                'placeholder': 'Descripción de la evidencia...'
+            }),
         }
 
 
@@ -88,7 +91,7 @@ class TaskReviewForm(forms.ModelForm):
 
 
 class TaskCompleteForm(forms.ModelForm):
-    """Formulario minimal para que el operario marque la tarea como completada."""
+    """Formulario para que el operario envíe la tarea a revisión."""
     class Meta:
         model  = Task
         fields = ['notes']

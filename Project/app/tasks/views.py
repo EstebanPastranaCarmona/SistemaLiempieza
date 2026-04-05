@@ -28,7 +28,6 @@ def task_list(request):
     user   = request.user
     status = request.GET.get('status', '')
 
-    # Operarios solo ven sus propias tareas
     if user.is_operario:
         tasks = Task.objects.filter(assigned_to=user).select_related('client', 'location', 'assigned_to')
     else:
@@ -41,9 +40,9 @@ def task_list(request):
     today = timezone.now().date()
 
     return render(request, 'tasks/task_list.html', {
-        'tasks':  tasks,
-        'today':  today,
-        'status': status,
+        'tasks':          tasks,
+        'today':          today,
+        'status':         status,
         'status_choices': Task.STATUS_CHOICES,
     })
 
@@ -53,7 +52,6 @@ def task_list(request):
 @login_required
 def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk)
-    # Operarios solo pueden ver sus propias tareas
     if request.user.is_operario and task.assigned_to != request.user:
         messages.error(request, 'No tenés acceso a esta tarea.')
         return redirect('tasks:task_list')
@@ -87,24 +85,45 @@ def task_edit(request, pk):
     return render(request, 'tasks/task_form.html', {'form': form, 'action': 'Editar', 'task': task})
 
 
-# ── Marcar como completada (operario) ────────────────────────
+# ── Iniciar tarea (operario) ─────────────────────────────────
+
+@login_required
+@require_POST
+def task_start(request, pk):
+    task = get_object_or_404(Task, pk=pk)
+    if request.user.is_operario and task.assigned_to != request.user:
+        messages.error(request, 'No podés iniciar esta tarea.')
+        return redirect('tasks:task_list')
+    if task.status != Task.PENDING:
+        messages.info(request, 'La tarea no está en estado Pendiente.')
+        return redirect('tasks:task_detail', pk=pk)
+    task.status = Task.IN_PROGRESS
+    task.save()
+    messages.success(request, 'Tarea iniciada. Ahora está En progreso.')
+    return redirect('tasks:task_detail', pk=pk)
+
+
+# ── Enviar a revisión (operario) ─────────────────────────────
 
 @login_required
 def task_complete(request, pk):
     task = get_object_or_404(Task, pk=pk)
-    # Solo el asignado o admin/supervisor puede completarla
     if request.user.is_operario and task.assigned_to != request.user:
         messages.error(request, 'No podés completar esta tarea.')
         return redirect('tasks:task_list')
-    if task.status == Task.VALIDATED:
-        messages.info(request, 'Esta tarea ya fue validada.')
+    if task.status not in (Task.PENDING, Task.IN_PROGRESS):
+        messages.info(request, 'Esta tarea no puede enviarse a revisión en su estado actual.')
+        return redirect('tasks:task_detail', pk=pk)
+    # Debe tener al menos una evidencia
+    if not task.evidences.exists():
+        messages.error(request, 'Debés subir al menos una evidencia antes de enviar la tarea a revisión.')
         return redirect('tasks:task_detail', pk=pk)
 
     form = TaskCompleteForm(request.POST or None, instance=task)
     if form.is_valid():
-        task.status = Task.COMPLETED
+        task.status = Task.PENDING_REVIEW
         form.save()
-        messages.success(request, 'Tarea marcada como completada.')
+        messages.success(request, 'Tarea enviada a revisión del supervisor.')
         return redirect('tasks:task_detail', pk=pk)
     return render(request, 'tasks/task_complete.html', {'form': form, 'task': task})
 
@@ -124,10 +143,6 @@ def evidence_create(request, task_pk):
         evidence.task        = task
         evidence.uploaded_by = request.user
         evidence.save()
-        # Cambiar estado a IN_PROGRESS si estaba PENDING
-        if task.status == Task.PENDING:
-            task.status = Task.IN_PROGRESS
-            task.save()
         messages.success(request, 'Evidencia subida correctamente.')
         return redirect('tasks:task_detail', pk=task_pk)
     return render(request, 'tasks/evidence_form.html', {'form': form, 'task': task})
@@ -143,11 +158,9 @@ def task_material_create(request, task_pk):
     if form.is_valid():
         material      = form.save(commit=False)
         material.task = task
-        # Verificar stock suficiente
         if material.lot.quantity < material.quantity:
             messages.error(request, f'Stock insuficiente en el lote seleccionado (disponible: {material.lot.quantity}).')
         else:
-            # Descontar del lote y registrar movimiento
             from app.inventory.models import Movement
             material.lot.quantity -= material.quantity
             material.lot.save()
@@ -181,12 +194,12 @@ def task_material_delete(request, pk):
 @supervisor_or_admin_required
 def task_review(request, task_pk):
     task = get_object_or_404(Task, pk=task_pk)
-    if task.status != Task.COMPLETED:
-        messages.error(request, 'Solo se pueden revisar tareas con estado Completada.')
+    if task.status != Task.PENDING_REVIEW:
+        messages.error(request, 'Solo se pueden revisar tareas con estado Pendiente de revisión.')
         return redirect('tasks:task_detail', pk=task_pk)
     if hasattr(task, 'review'):
-        messages.info(request, 'Esta tarea ya fue revisada.')
-        return redirect('tasks:task_detail', pk=task_pk)
+        # Eliminar revisión anterior para permitir re-revisión tras rechazo
+        task.review.delete()
 
     form = TaskReviewForm(request.POST or None)
     if form.is_valid():

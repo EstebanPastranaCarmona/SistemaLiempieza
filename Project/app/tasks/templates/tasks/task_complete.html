@@ -1,26 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Completar Tarea{% endblock %}
+{% block title %}Enviar a revisión{% endblock %}
 
 {% block body %}
 <div class="row justify-content-center">
     <div class="col-md-6">
-
         <nav class="mb-3">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'users:dashboard' %}" class="text-decoration-none"><i class="bi bi-house-fill"></i></a></li>
                 <li class="breadcrumb-item"><a href="{% url 'tasks:task_list' %}" class="text-decoration-none">Tareas</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'tasks:task_detail' task.pk %}" class="text-decoration-none">{{ task.title }}</a></li>
-                <li class="breadcrumb-item active">Completar</li>
+                <li class="breadcrumb-item active">Enviar a revisión</li>
             </ol>
         </nav>
-
         <div class="card form-card">
             <div class="card-header d-flex align-items-center gap-2">
-                <i class="bi bi-check-circle-fill fs-5 text-success"></i>
-                <span class="fw-600">Marcar como completada</span>
+                <i class="bi bi-send-fill fs-5"></i>
+                <span class="fw-semibold">Enviar tarea a revisión</span>
             </div>
             <div class="card-body p-4">
-                <p class="text-muted mb-3">¿Confirmás que la tarea <strong>{{ task.title }}</strong> fue completada?</p>
+                <p class="opacity-75 mb-3">¿Confirmás que la tarea <strong>{{ task.title }}</strong> está lista para ser revisada por el supervisor?</p>
                 <form method="POST" novalidate>
                     {% csrf_token %}
                     <div class="mb-4">
@@ -29,9 +27,9 @@
                     </div>
                     <div class="d-flex justify-content-between">
                         <button type="submit" class="btn btn-lc">
-                            <i class="bi bi-check-lg me-1"></i>Confirmar completada
+                            <i class="bi bi-send-fill me-1"></i>Enviar a revisión
                         </button>
-                        <a href="{% url 'tasks:task_detail' task.pk %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'tasks:task_detail' task.pk %}" class="btn-lc-outline">
                             <i class="bi bi-x-lg me-1"></i>Cancelar
                         </a>
                     </div>

@@ -15,21 +15,17 @@
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <form method="GET" class="d-flex gap-2">
         <select name="status" class="form-select" onchange="this.form.submit()"
-                style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
-                       color: white; border-radius: 10px; width: auto;">
-            <option value="" style="background: #1a237e;">Todos los estados</option>
+                style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:10px;width:auto;">
+            <option value="" style="background:#1a237e;">Todos los estados</option>
             {% for val, label in status_choices %}
-            <option value="{{ val }}" style="background: #1a237e;"
+            <option value="{{ val }}" style="background:#1a237e;"
                     {% if status == val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
         {% if status %}
-        <a href="{% url 'tasks:task_list' %}" class="btn-lc-outline">
-            <i class="bi bi-x-lg"></i>
-        </a>
+        <a href="{% url 'tasks:task_list' %}" class="btn-lc-outline"><i class="bi bi-x-lg"></i></a>
         {% endif %}
     </form>
-
     {% if user.is_admin or user.is_supervisor %}
     <div class="ms-auto">
         <a href="{% url 'tasks:task_create' %}" class="btn-lc">
@@ -61,17 +57,15 @@
                 <td>{{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"—" }}</td>
                 <td>
                     {{ task.scheduled_date }}
-                    {% if task.is_overdue %}
-                        <span class="badge bg-danger ms-1">Atrasada</span>
-                    {% endif %}
+                    {% if task.is_overdue %}<span class="badge bg-danger ms-1">Atrasada</span>{% endif %}
                 </td>
                 <td>
                     {% if task.status == 'PENDING' %}
                         <span class="badge bg-secondary">Pendiente</span>
                     {% elif task.status == 'IN_PROGRESS' %}
                         <span class="badge bg-warning text-dark">En progreso</span>
-                    {% elif task.status == 'COMPLETED' %}
-                        <span class="badge bg-info text-dark">Completada</span>
+                    {% elif task.status == 'PENDING_REVIEW' %}
+                        <span class="badge bg-info text-dark">Pend. revisión</span>
                     {% elif task.status == 'VALIDATED' %}
                         <span class="badge bg-success">Validada</span>
                     {% endif %}
@@ -91,7 +85,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center py-5" style="background:white; color:#888;">
+                <td colspan="7" class="text-center py-5" style="background:white;color:#888;">
                     <i class="bi bi-clipboard-x fs-3 d-block mb-2"></i>
                     No hay tareas registradas.
                 </td>
