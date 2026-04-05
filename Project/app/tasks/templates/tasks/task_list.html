@@ -59,7 +59,7 @@
         <tbody>
             {% for task in tasks %}
             <tr>
-                <td class="ps-3 opacity-75">{{ task.pk }}</td>
+                <td class="ps-3 text-muted">{{ task.pk }}</td>
                 <td class="fw-semibold">{{ task.title }}</td>
                 <td>{{ task.client.name }}</td>
                 <td>{{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"—" }}</td>
@@ -80,13 +80,13 @@
                 </td>
                 <td>
                     <div class="d-flex gap-1">
-                        <a href="{% url 'tasks:task_detail' task.pk %}" class="btn btn-sm btn-lc"
+                        <a href="{% url 'tasks:task_detail' task.pk %}" class="btn btn-sm btn-lc-primary"
                            title="Ver detalle">
                             <i class="bi bi-eye-fill"></i>
                         </a>
                         {% if user.is_admin or user.is_supervisor %}
                         {% if task.status != 'VALIDATED' %}
-                        <a href="{% url 'tasks:task_edit' task.pk %}" class="btn btn-sm btn-lc"
+                        <a href="{% url 'tasks:task_edit' task.pk %}" class="btn btn-sm btn-lc-primary"
                            title="Editar">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
@@ -97,7 +97,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center py-5 opacity-75">
+                <td colspan="7" class="text-center py-5" style="background:white;color:#888;">
                     <i class="bi bi-clipboard-x fs-3 d-block mb-2"></i>
                     No hay tareas en este estado.
                 </td>
