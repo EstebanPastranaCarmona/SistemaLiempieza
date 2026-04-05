@@ -47,7 +47,6 @@
     </div>
 
     <div class="col-md-4">
-        <!-- Siempre entra a lotes, nunca a productos directamente -->
         <a href="{% url 'inventory:lot_list' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
@@ -64,7 +63,7 @@
     </div>
 
     <div class="col-md-4">
-        <a href="#" class="text-decoration-none">
+        <a href="{% url 'tasks:task_list' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
                     <div class="card-icon">
@@ -98,7 +97,7 @@
 
     {% if user.is_operario %}
     <div class="col-md-4">
-        <a href="#" class="text-decoration-none">
+        <a href="{% url 'tasks:task_list' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
                     <div class="card-icon">
