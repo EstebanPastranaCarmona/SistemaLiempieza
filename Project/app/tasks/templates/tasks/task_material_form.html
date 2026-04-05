@@ -14,10 +14,19 @@
             </ol>
         </nav>
 
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert {% if msg.tags == 'error' %}alert-danger{% elif msg.tags == 'success' %}alert-success{% elif msg.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} d-flex align-items-center gap-2 mb-3" role="alert">
+            <i class="bi {% if msg.tags == 'error' %}bi-x-circle-fill{% elif msg.tags == 'success' %}bi-check-circle-fill{% elif msg.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} flex-shrink-0"></i>
+            <span>{{ msg }}</span>
+        </div>
+        {% endfor %}
+        {% endif %}
+
         <div class="card form-card">
             <div class="card-header d-flex align-items-center gap-2">
                 <i class="bi bi-box-seam-fill fs-5"></i>
-                <span class="fw-600">Agregar material a la tarea</span>
+                <span class="fw-semibold">Agregar material a la tarea</span>
             </div>
             <div class="card-body p-4">
                 <form method="POST" novalidate>
@@ -26,6 +35,11 @@
                         <label class="form-label"><i class="bi bi-layers me-1"></i>Lote</label>
                         {{ form.lot }}
                         {% if form.lot.errors %}<div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.lot.errors.0 }}</div>{% endif %}
+
+                        {# Indicador de stock disponible #}
+                        <div id="stock-info" class="mt-2" style="display:none;">
+                            <span class="badge" id="stock-badge" style="font-size:.85rem;padding:.4em .75em;"></span>
+                        </div>
                     </div>
                     <div class="mb-4">
                         <label class="form-label"><i class="bi bi-stack me-1"></i>Cantidad</label>
@@ -33,7 +47,7 @@
                         {% if form.quantity.errors %}<div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.quantity.errors.0 }}</div>{% endif %}
                     </div>
                     <div class="d-flex justify-content-between">
-                        <button type="submit" class="btn btn-lc">
+                        <button type="submit" class="btn-lc">
                             <i class="bi bi-check-lg me-1"></i>Asignar material
                         </button>
                         <a href="{% url 'tasks:task_detail' task.pk %}" class="btn btn-outline-secondary">
@@ -45,4 +59,37 @@
         </div>
     </div>
 </div>
+
+<script>
+// Mapa lote_id -> {stock, unit} generado desde Django
+const LOT_STOCK = {
+    {% for lot_id, qty, unit in lot_stock_data %}"{{ lot_id }}": {"qty": {{ qty }}, "unit": "{{ unit }}"}{% if not forloop.last %},{% endif %}{% endfor %}
+};
+
+const sel   = document.getElementById('id_lot');
+const info  = document.getElementById('stock-info');
+const badge = document.getElementById('stock-badge');
+
+function updateStock() {
+    const val = sel.value;
+    if (!val || !LOT_STOCK[val]) { info.style.display = 'none'; return; }
+    const data = LOT_STOCK[val];
+    info.style.display = 'block';
+    if (data.qty <= 0) {
+        badge.className = 'badge bg-danger';
+        badge.textContent = 'Sin stock disponible';
+    } else if (data.qty <= 10) {
+        badge.className = 'badge bg-warning text-dark';
+        badge.textContent = 'Stock disponible: ' + data.qty + ' ' + data.unit;
+    } else {
+        badge.className = 'badge bg-success';
+        badge.textContent = 'Stock disponible: ' + data.qty + ' ' + data.unit;
+    }
+}
+
+if (sel) {
+    sel.addEventListener('change', updateStock);
+    updateStock(); // por si viene pre-seleccionado
+}
+</script>
 {% endblock %}

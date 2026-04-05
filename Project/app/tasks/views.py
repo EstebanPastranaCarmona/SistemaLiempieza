@@ -21,7 +21,7 @@ def supervisor_or_admin_required(view_func):
     return wrapper
 
 
-# ── Lista de tareas ──────────────────────────────────────────
+# ── Lista de tareas ───────────────────────────────────────────────
 
 @login_required
 def task_list(request):
@@ -34,10 +34,8 @@ def task_list(request):
         tasks = Task.objects.all().select_related('client', 'location', 'assigned_to')
 
     if status:
-        # Filtro explícito: mostrar lo que el usuario pidió
         tasks = tasks.filter(status=status)
     else:
-        # Por defecto: ocultar las validadas
         tasks = tasks.exclude(status=Task.VALIDATED)
 
     tasks = tasks.order_by('scheduled_date', 'scheduled_time')
@@ -51,7 +49,7 @@ def task_list(request):
     })
 
 
-# ── Detalle de tarea ─────────────────────────────────────────
+# ── Detalle de tarea ───────────────────────────────────────────────
 
 @login_required
 def task_detail(request, pk):
@@ -62,7 +60,7 @@ def task_detail(request, pk):
     return render(request, 'tasks/task_detail.html', {'task': task})
 
 
-# ── Crear / Editar tarea ─────────────────────────────────────
+# ── Crear / Editar tarea ─────────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
@@ -89,13 +87,12 @@ def task_edit(request, pk):
     return render(request, 'tasks/task_form.html', {'form': form, 'action': 'Editar', 'task': task})
 
 
-# ── Iniciar tarea (SOLO el operario asignado) ────────────────
+# ── Iniciar tarea (SOLO el operario asignado) ────────────────────────
 
 @login_required
 @require_POST
 def task_start(request, pk):
     task = get_object_or_404(Task, pk=pk)
-    # Solo el operario asignado puede iniciar la tarea
     if task.assigned_to != request.user:
         messages.error(request, 'Solo el operario asignado puede iniciar esta tarea.')
         return redirect('tasks:task_detail', pk=pk)
@@ -108,7 +105,7 @@ def task_start(request, pk):
     return redirect('tasks:task_detail', pk=pk)
 
 
-# ── Enviar a revisión (operario asignado) ────────────────────
+# ── Enviar a revisión (operario asignado) ──────────────────────────
 
 @login_required
 def task_complete(request, pk):
@@ -128,11 +125,11 @@ def task_complete(request, pk):
         task.status = Task.PENDING_REVIEW
         form.save()
         messages.success(request, 'Tarea enviada a revisión del supervisor.')
-        return redirect('tasks:task_detail', pk=pk)
+        return redirect('tasks:task_detail', pk=task.pk)
     return render(request, 'tasks/task_complete.html', {'form': form, 'task': task})
 
 
-# ── Evidencias ───────────────────────────────────────────────
+# ── Evidencias ─────────────────────────────────────────────────────
 
 @login_required
 def evidence_create(request, task_pk):
@@ -152,18 +149,25 @@ def evidence_create(request, task_pk):
     return render(request, 'tasks/evidence_form.html', {'form': form, 'task': task})
 
 
-# ── Materiales ───────────────────────────────────────────────
+# ── Materiales ──────────────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
 def task_material_create(request, task_pk):
+    from app.inventory.models import Lot
     task = get_object_or_404(Task, pk=task_pk)
+
+    # Datos de stock para el JS del template: lista de (id, quantity, unit)
+    lot_stock_data = Lot.objects.filter(is_active=True).select_related('product').values_list(
+        'id', 'quantity', 'product__unit'
+    )
+
     form = TaskMaterialForm(request.POST or None)
     if form.is_valid():
         material      = form.save(commit=False)
         material.task = task
         if material.lot.quantity < material.quantity:
-            messages.error(request, f'Stock insuficiente en el lote seleccionado (disponible: {material.lot.quantity}).')
+            messages.error(request, f'Stock insuficiente en el lote seleccionado (disponible: {material.lot.quantity} {material.lot.product.unit}).')
         else:
             from app.inventory.models import Movement
             material.lot.quantity -= material.quantity
@@ -178,7 +182,12 @@ def task_material_create(request, task_pk):
             material.save()
             messages.success(request, 'Material asignado y descontado del inventario.')
             return redirect('tasks:task_detail', pk=task_pk)
-    return render(request, 'tasks/task_material_form.html', {'form': form, 'task': task})
+
+    return render(request, 'tasks/task_material_form.html', {
+        'form':           form,
+        'task':           task,
+        'lot_stock_data': lot_stock_data,
+    })
 
 
 @login_required
@@ -192,7 +201,7 @@ def task_material_delete(request, pk):
     return redirect('tasks:task_detail', pk=task_pk)
 
 
-# ── Revisión del supervisor ──────────────────────────────────
+# ── Revisión del supervisor ──────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
