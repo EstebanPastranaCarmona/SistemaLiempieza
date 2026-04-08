@@ -52,19 +52,31 @@
                 <form method="POST">
                     {% csrf_token %}
                     <div class="mb-4">
-                        <label for="id_quantity_used" class="form-label fw-semibold">
+                        <label for="id_quantity_used" class="form-label fw-semibold" style="color:#212529;">
                             ¿Cuánto usaste?
                             <span class="text-danger">*</span>
                             <small class="text-muted fw-normal">
                                 (entre 0 y {{ material.quantity }} {{ material.lot.product.unit }})
                             </small>
                         </label>
-                        {# Renderizamos el widget manualmente para garantizar que el value está presente #}
                         <input
                             type="number"
                             name="quantity_used"
                             id="id_quantity_used"
                             class="form-control form-control-lg"
+                            style="
+                                background: #ffffff;
+                                color: #212529;
+                                border: 2px solid #ced4da;
+                                border-radius: 8px;
+                                font-size: 1.5rem;
+                                font-weight: 600;
+                                text-align: center;
+                                padding: 0.75rem 1rem;
+                                transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+                            "
+                            onfocus="this.style.borderColor='#0d6efd'; this.style.boxShadow='0 0 0 3px rgba(13,110,253,0.25)';"
+                            onblur="this.style.borderColor='#ced4da'; this.style.boxShadow='none';"
                             min="0"
                             max="{{ material.quantity }}"
                             value="{% if form.quantity_used.value is not None %}{{ form.quantity_used.value }}{% else %}{{ material.quantity }}{% endif %}"
@@ -76,8 +88,8 @@
                             <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
                             {% endfor %}
                         {% endif %}
-                        <div class="form-text">
-                            El campo ya viene cargado con la cantidad asignada. Modificalo solo si usaste menos.
+                        <div class="form-text mt-2" style="color:#6c757d;">
+                            El campo ya viene cargado con la cantidad asignada. Modificálo solo si usaste menos.
                         </div>
                     </div>
                     <div class="d-flex gap-2">
