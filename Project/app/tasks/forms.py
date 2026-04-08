@@ -23,11 +23,16 @@ class TaskForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        operario_group = Group.objects.filter(name__in=['Operario', 'Supervisor'])
-        self.fields['assigned_to'].queryset = User.objects.filter(
-            groups__in=operario_group, is_active=True
-        ).distinct()
-        self.fields['assigned_to'].empty_label = '— Seleccionar trabajador —'
+        # Solo operarios activos pueden ser asignados a tareas
+        try:
+            operario_group = Group.objects.get(name='Operario')
+            self.fields['assigned_to'].queryset = User.objects.filter(
+                groups=operario_group, is_active=True
+            ).distinct().order_by('first_name', 'last_name')
+        except Group.DoesNotExist:
+            self.fields['assigned_to'].queryset = User.objects.none()
+
+        self.fields['assigned_to'].empty_label = '— Seleccionar operario —'
         self.fields['client'].empty_label = '— Seleccionar cliente —'
         self.fields['location'].queryset = ClientLocation.objects.none()
         self.fields['location'].required = False
