@@ -21,6 +21,13 @@ def _supervisor_required(view_func):
     return _wrapped
 
 
+def _task_estado(task, today):
+    """Devuelve la etiqueta de estado visible, igual que task_list.html."""
+    if task.status in (Task.PENDING, Task.IN_PROGRESS) and task.scheduled_date < today:
+        return 'Atrasada'
+    return task.get_status_display()
+
+
 @login_required
 @_supervisor_required
 def report_index(request):
@@ -107,7 +114,7 @@ def report_tasks(request):
             rows.append([
                 t.title, t.client.name,
                 t.scheduled_date.strftime('%d/%m/%Y'),
-                t.get_status_display(),
+                _task_estado(t, today),
                 t.assigned_to.get_full_name() if t.assigned_to else '—',
             ])
 
@@ -123,7 +130,7 @@ def report_tasks(request):
             rows.append([
                 t.title, t.client.name,
                 t.scheduled_date.strftime('%d/%m/%Y'),
-                t.get_status_display(),
+                _task_estado(t, today),
                 t.assigned_to.get_full_name() if t.assigned_to else '—',
             ])
 
