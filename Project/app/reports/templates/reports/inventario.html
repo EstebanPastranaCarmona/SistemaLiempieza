@@ -8,11 +8,10 @@
         <small class="opacity-75">Estado actual de todos los productos</small>
     </div>
     <div class="d-flex gap-2">
-        {# CU8: Exportar CSV #}
         <a href="?{% if search %}q={{ search }}&{% endif %}export=csv" class="btn btn-sm btn-success">
             <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar CSV
         </a>
-        <a href="{% url 'reports:index' %}" class="btn btn-sm btn-outline-light">
+        <a href="{% url 'reports:index' %}?tab=inventario" class="btn btn-sm btn-outline-light">
             <i class="bi bi-arrow-left me-1"></i>Reportes
         </a>
     </div>

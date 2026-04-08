@@ -32,18 +32,18 @@
 <div class="row g-3 mb-4">
     {% if low_stock_count %}
     <div class="col-md-4">
-        <div class="card border-danger h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
-                    <span class="fw-semibold text-danger">Stock bajo</span>
-                    <span class="badge bg-danger ms-auto">{{ low_stock_count }}</span>
-                </div>
-                <ul class="mb-2 small ps-3">
-                    {% for p in low_stock_list %}
-                    <li>{{ p.name }} — {{ p.get_total_stock }}/{{ p.min_stock }} {{ p.unit }}</li>
-                    {% endfor %}
-                </ul>
+        <div class="alert-lc-card alert-lc-card--danger h-100">
+            <div class="alert-lc-title">
+                <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                <span class="text-danger">Stock bajo</span>
+                <span class="badge bg-danger ms-auto">{{ low_stock_count }}</span>
+            </div>
+            <ul>
+                {% for p in low_stock_list %}
+                <li>{{ p.name }} — {{ p.get_total_stock }}/{{ p.min_stock }} {{ p.unit }}</li>
+                {% endfor %}
+            </ul>
+            <div class="alert-lc-action">
                 <a href="{% url 'inventory:alerts' %}" class="btn btn-sm btn-outline-danger w-100">Ver alertas</a>
             </div>
         </div>
@@ -52,18 +52,18 @@
 
     {% if expiring_count %}
     <div class="col-md-4">
-        <div class="card border-warning h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <i class="bi bi-clock-history text-warning fs-4"></i>
-                    <span class="fw-semibold text-warning">Lotes por vencer</span>
-                    <span class="badge bg-warning text-dark ms-auto">{{ expiring_count }}</span>
-                </div>
-                <ul class="mb-2 small ps-3">
-                    {% for lot in expiring_list %}
-                    <li>{{ lot.product.name }} #{{ lot.pk }} — {{ lot.expiration_date }}</li>
-                    {% endfor %}
-                </ul>
+        <div class="alert-lc-card alert-lc-card--warning h-100">
+            <div class="alert-lc-title">
+                <i class="bi bi-clock-history text-warning"></i>
+                <span class="text-warning">Lotes por vencer</span>
+                <span class="badge bg-warning text-dark ms-auto">{{ expiring_count }}</span>
+            </div>
+            <ul>
+                {% for lot in expiring_list %}
+                <li>{{ lot.product.name }} #{{ lot.pk }} — {{ lot.expiration_date }}</li>
+                {% endfor %}
+            </ul>
+            <div class="alert-lc-action">
                 <a href="{% url 'inventory:alerts' %}" class="btn btn-sm btn-outline-warning w-100">Ver alertas</a>
             </div>
         </div>
@@ -72,14 +72,14 @@
 
     {% if pending_review_count %}
     <div class="col-md-4">
-        <div class="card border-info h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <i class="bi bi-patch-check-fill text-info fs-4"></i>
-                    <span class="fw-semibold text-info">Pendientes de revisión</span>
-                    <span class="badge bg-info text-dark ms-auto">{{ pending_review_count }}</span>
-                </div>
-                <p class="small text-muted mb-2">Tareas esperando tu validación.</p>
+        <div class="alert-lc-card alert-lc-card--info h-100">
+            <div class="alert-lc-title">
+                <i class="bi bi-patch-check-fill text-info"></i>
+                <span class="text-info">Pendientes de revisión</span>
+                <span class="badge bg-info text-dark ms-auto">{{ pending_review_count }}</span>
+            </div>
+            <p class="small mb-0" style="color: var(--lc-text-muted);">Tareas esperando tu validación.</p>
+            <div class="alert-lc-action">
                 <a href="{% url 'tasks:task_list' %}?status=PENDING_REVIEW" class="btn btn-sm btn-outline-info w-100">Ver tareas</a>
             </div>
         </div>
@@ -95,9 +95,7 @@
         <a href="{% url 'users:user_list' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon">
-                        <i class="bi bi-people-fill"></i>
-                    </div>
+                    <div class="card-icon"><i class="bi bi-people-fill"></i></div>
                     <div>
                         <h6 class="mb-1 text-white">Usuarios</h6>
                         <small class="text-white opacity-75">Gestión de personal y roles</small>
@@ -113,9 +111,7 @@
         <a href="{% url 'clients:client_list' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon">
-                        <i class="bi bi-building"></i>
-                    </div>
+                    <div class="card-icon"><i class="bi bi-building"></i></div>
                     <div>
                         <h6 class="mb-1 text-white">Clientes</h6>
                         <small class="text-white opacity-75">Empresas y ubicaciones</small>
@@ -129,9 +125,7 @@
         <a href="{% url 'inventory:lot_list' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon">
-                        <i class="bi bi-layers-fill"></i>
-                    </div>
+                    <div class="card-icon"><i class="bi bi-layers-fill"></i></div>
                     <div>
                         <h6 class="mb-1 text-white">Inventario</h6>
                         {% if low_stock_count %}
@@ -149,9 +143,7 @@
         <a href="{% url 'tasks:task_list' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon">
-                        <i class="bi bi-clipboard2-check-fill"></i>
-                    </div>
+                    <div class="card-icon"><i class="bi bi-clipboard2-check-fill"></i></div>
                     <div>
                         <h6 class="mb-1 text-white">Tareas</h6>
                         {% if pending_review_count %}
@@ -169,9 +161,7 @@
         <a href="{% url 'reports:index' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon">
-                        <i class="bi bi-bar-chart-fill"></i>
-                    </div>
+                    <div class="card-icon"><i class="bi bi-bar-chart-fill"></i></div>
                     <div>
                         <h6 class="mb-1 text-white">Reportes</h6>
                         <small class="text-white opacity-75">Historial por cliente</small>
@@ -187,9 +177,7 @@
         <a href="{% url 'tasks:task_list' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon">
-                        <i class="bi bi-list-check"></i>
-                    </div>
+                    <div class="card-icon"><i class="bi bi-list-check"></i></div>
                     <div>
                         <h6 class="mb-1 text-white">Mis Tareas</h6>
                         {% if rejected_tasks %}
