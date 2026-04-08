@@ -23,11 +23,16 @@ class TaskForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        operario_group = Group.objects.filter(name__in=['Operario', 'Supervisor'])
-        self.fields['assigned_to'].queryset = User.objects.filter(
-            groups__in=operario_group, is_active=True
-        ).distinct()
-        self.fields['assigned_to'].empty_label = '— Seleccionar trabajador —'
+        # Solo operarios activos pueden ser asignados a tareas
+        try:
+            operario_group = Group.objects.get(name='Operario')
+            self.fields['assigned_to'].queryset = User.objects.filter(
+                groups=operario_group, is_active=True
+            ).distinct().order_by('first_name', 'last_name')
+        except Group.DoesNotExist:
+            self.fields['assigned_to'].queryset = User.objects.none()
+
+        self.fields['assigned_to'].empty_label = '— Seleccionar operario —'
         self.fields['client'].empty_label = '— Seleccionar cliente —'
         self.fields['location'].queryset = ClientLocation.objects.none()
         self.fields['location'].required = False
@@ -59,7 +64,6 @@ class TaskForm(forms.ModelForm):
                 scheduled_time=scheduled_time,
                 status__in=[Task.PENDING, Task.IN_PROGRESS],
             )
-            # Excluir la tarea actual en caso de edición
             if self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
@@ -84,6 +88,34 @@ class TaskMaterialForm(forms.ModelForm):
         from app.inventory.models import Lot
         self.fields['lot'].queryset = Lot.objects.filter(is_active=True).select_related('product')
         self.fields['lot'].empty_label = '— Seleccionar lote —'
+
+
+class TaskMaterialUsedForm(forms.ModelForm):
+    """
+    Formulario para que el operario reporte la cantidad real usada de un material.
+    La cantidad usada no puede superar la cantidad asignada.
+    """
+    class Meta:
+        model  = TaskMaterial
+        fields = ['quantity_used']
+        widgets = {
+            'quantity_used': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+        }
+        labels = {
+            'quantity_used': 'Cantidad realmente usada',
+        }
+
+    def clean_quantity_used(self):
+        qty_used = self.cleaned_data.get('quantity_used')
+        if qty_used is None:
+            raise forms.ValidationError('Ingresá la cantidad usada.')
+        if qty_used < 0:
+            raise forms.ValidationError('La cantidad no puede ser negativa.')
+        if qty_used > self.instance.quantity:
+            raise forms.ValidationError(
+                f'No podés haber usado más de lo asignado ({self.instance.quantity} {self.instance.lot.product.unit}).'
+            )
+        return qty_used
 
 
 class EvidenceForm(forms.ModelForm):

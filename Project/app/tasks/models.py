@@ -63,16 +63,37 @@ class Task(models.Model):
 
 
 class TaskMaterial(models.Model):
-    """Materiales (lotes) asignados a una tarea."""
-    task     = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='materials', verbose_name='Tarea')
-    lot      = models.ForeignKey(
+    """
+    Materiales (lotes) asignados a una tarea.
+
+    - quantity:      cantidad descontada del inventario al asignar el material.
+    - quantity_used: cantidad que el operario reportó haber usado realmente.
+                     Por defecto es igual a quantity. Si el operario usó menos,
+                     la diferencia (quantity - quantity_used) se devuelve al lote
+                     cuando se elimina el registro o cuando el operario lo ajusta.
+    """
+    task          = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='materials', verbose_name='Tarea')
+    lot           = models.ForeignKey(
         'inventory.Lot', on_delete=models.PROTECT,
         related_name='task_materials', verbose_name='Lote'
     )
-    quantity = models.IntegerField(verbose_name='Cantidad')
+    quantity      = models.IntegerField(verbose_name='Cantidad asignada')
+    quantity_used = models.IntegerField(
+        null=True, blank=True,
+        verbose_name='Cantidad usada',
+        help_text='Cantidad real utilizada en la tarea. Si es menor a la asignada, el sobrante regresa al inventario al validar.'
+    )
+
+    def used(self):
+        """Devuelve la cantidad efectivamente usada (quantity_used si está registrado, si no quantity)."""
+        return self.quantity_used if self.quantity_used is not None else self.quantity
+
+    def surplus(self):
+        """Sobrante = cantidad asignada - cantidad usada."""
+        return self.quantity - self.used()
 
     def __str__(self):
-        return f'{self.lot.product.name} x{self.quantity} → {self.task.title}'
+        return f'{self.lot.product.name} x{self.quantity} (usado: {self.used()}) → {self.task.title}'
 
     class Meta:
         verbose_name        = 'Material de tarea'
