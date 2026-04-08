@@ -3,12 +3,14 @@ from django.utils import timezone
 
 
 class Product(models.Model):
-    name         = models.CharField(max_length=100, unique=True, verbose_name='Nombre')
-    product_type = models.CharField(max_length=60, verbose_name='Tipo')
-    unit         = models.CharField(max_length=30, verbose_name='Unidad de medida')
-    min_stock    = models.IntegerField(default=0, verbose_name='Stock mínimo')
-    is_active    = models.BooleanField(default=True)
-    created_at   = models.DateTimeField(auto_now_add=True)
+    name               = models.CharField(max_length=100, unique=True, verbose_name='Nombre')
+    product_type       = models.CharField(max_length=60, verbose_name='Tipo')
+    unit               = models.CharField(max_length=30, verbose_name='Unidad de medida')
+    min_stock          = models.IntegerField(default=0, verbose_name='Stock mínimo')
+    supplier           = models.CharField(max_length=150, blank=True, verbose_name='Proveedor')
+    warehouse_location = models.CharField(max_length=100, blank=True, verbose_name='Ubicación en almacén')
+    is_active          = models.BooleanField(default=True)
+    created_at         = models.DateTimeField(auto_now_add=True)
 
     def get_total_stock(self):
         result = self.lots.filter(is_active=True).aggregate(total=models.Sum('quantity'))
