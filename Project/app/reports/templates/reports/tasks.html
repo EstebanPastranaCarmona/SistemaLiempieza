@@ -1,74 +1,80 @@
 {% extends "base.html" %}
-{% block title %}Reporte de Tareas{% endblock %}
+{% block title %}Reportes — Tareas{% endblock %}
 
 {% block body %}
-<div class="page-header d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <h4 class="mb-1"><i class="bi bi-clipboard2-check-fill me-2"></i>Reporte de Tareas</h4>
-    <small class="opacity-75">Historial y estado de tareas programadas</small>
-  </div>
-  <a href="{% url 'reports:dashboard' %}" class="btn-lc-outline">&#8592; Volver</a>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4><i class="bi bi-clipboard2-check-fill me-2"></i>Reporte de Tareas</h4>
+        <small class="opacity-75">Listado de tareas con filtros por estado y cliente</small>
+    </div>
+    <a href="{% url 'reports:dashboard' %}" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-arrow-left me-1"></i>Volver a Reportes
+    </a>
 </div>
 
-<div class="d-flex flex-wrap gap-3 mb-4">
-  <span class="badge" style="background:rgba(255,255,255,0.15);font-size:.85rem">Pendientes <strong>{{ summary_dict.PENDING|default:0 }}</strong></span>
-  <span class="badge" style="background:rgba(255,255,255,0.15);font-size:.85rem">En progreso <strong>{{ summary_dict.IN_PROGRESS|default:0 }}</strong></span>
-  <span class="badge" style="background:rgba(255,255,255,0.15);font-size:.85rem">Por revisar <strong>{{ summary_dict.PENDING_REVIEW|default:0 }}</strong></span>
-  <span class="badge bg-success" style="font-size:.85rem">Validadas <strong>{{ summary_dict.VALIDATED|default:0 }}</strong></span>
-</div>
+<!-- Filtros -->
+<form method="get" class="d-flex gap-2 mb-3 flex-wrap">
+    <select name="status" class="form-select form-select-sm" style="max-width:200px;">
+        <option value="">Todos los estados</option>
+        <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>Pendiente</option>
+        <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>En progreso</option>
+        <option value="PENDING_REVIEW" {% if request.GET.status == 'PENDING_REVIEW' %}selected{% endif %}>Por revisar</option>
+        <option value="VALIDATED" {% if request.GET.status == 'VALIDATED' %}selected{% endif %}>Validada</option>
+        <option value="CANCELLED" {% if request.GET.status == 'CANCELLED' %}selected{% endif %}>Cancelada</option>
+    </select>
+    <select name="client" class="form-select form-select-sm" style="max-width:200px;">
+        <option value="">Todos los clientes</option>
+        {% for c in clients %}
+        <option value="{{ c.pk }}" {% if request.GET.client == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-lc-primary"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+    <a href="{% url 'reports:tasks' %}" class="btn btn-sm btn-outline-light">Limpiar</a>
+</form>
 
-<div class="mb-3">
-  <form method="get" class="d-flex flex-wrap gap-3 align-items-end">
-    <label class="text-white opacity-75 mb-0">Desde <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm"></label>
-    <label class="text-white opacity-75 mb-0">Hasta <input type="date" name="date_to"   value="{{ date_to }}"   class="form-control form-control-sm"></label>
-    <label class="text-white opacity-75 mb-0">Cliente
-      <select name="client" class="form-select form-select-sm">
-        <option value="">Todos</option>
-        {% for c in clients %}<option value="{{ c.pk }}" {% if c.pk|stringformat:'s' == client_id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
-      </select>
-    </label>
-    <label class="text-white opacity-75 mb-0">Estado
-      <select name="status" class="form-select form-select-sm">
-        <option value="">Todos</option>
-        <option value="PENDING"        {% if status_filter == 'PENDING' %}selected{% endif %}>Pendiente</option>
-        <option value="IN_PROGRESS"    {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>En progreso</option>
-        <option value="PENDING_REVIEW" {% if status_filter == 'PENDING_REVIEW' %}selected{% endif %}>Por revisar</option>
-        <option value="VALIDATED"      {% if status_filter == 'VALIDATED' %}selected{% endif %}>Validada</option>
-        <option value="CANCELLED"      {% if status_filter == 'CANCELLED' %}selected{% endif %}>Cancelada</option>
-      </select>
-    </label>
-    <button type="submit" class="btn-lc">Filtrar</button>
-    <a href="{% url 'reports:tasks' %}" class="btn-lc-outline">Limpiar</a>
-  </form>
-</div>
-
-{% if tasks %}
 <div class="table-wrapper">
-  <table class="table table-lc table-hover">
-    <thead><tr><th>Tarea</th><th>Cliente</th><th>Programada</th><th>Estado</th><th>Asignado</th></tr></thead>
-    <tbody>
-      {% for t in tasks %}
-      <tr>
-        <td><strong>{{ t.title }}</strong></td>
-        <td>{{ t.client.name }}</td>
-        <td>{{ t.scheduled_date }}</td>
-        <td>
-          {% if t.status == 'VALIDATED' %}<span class="badge bg-success">Validada</span>
-          {% elif t.status == 'IN_PROGRESS' %}<span class="badge bg-primary">En progreso</span>
-          {% elif t.status == 'PENDING_REVIEW' %}<span class="badge bg-info text-dark">Por revisar</span>
-          {% elif t.status == 'CANCELLED' %}<span class="badge bg-secondary">Cancelada</span>
-          {% else %}<span class="badge bg-warning text-dark">Pendiente</span>{% endif %}
-        </td>
-        <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username|default:'-' }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    <table class="table table-lc table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="ps-3"><i class="bi bi-hash me-1"></i>#</th>
+                <th><i class="bi bi-building me-1"></i>Cliente</th>
+                <th><i class="bi bi-calendar me-1"></i>Fecha prog.</th>
+                <th><i class="bi bi-calendar-check me-1"></i>Fecha fin</th>
+                <th><i class="bi bi-circle-fill me-1"></i>Estado</th>
+                <th><i class="bi bi-person me-1"></i>Operario</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tasks %}
+            <tr>
+                <td class="ps-3">{{ t.pk }}</td>
+                <td>{{ t.client.name }}</td>
+                <td>{{ t.scheduled_date|date:"d/m/Y" }}</td>
+                <td>{{ t.completion_date|date:"d/m/Y"|default:"—" }}</td>
+                <td>
+                    {% if t.status == 'VALIDATED' %}
+                        <span class="badge bg-success">Validada</span>
+                    {% elif t.status == 'IN_PROGRESS' %}
+                        <span class="badge bg-primary">En progreso</span>
+                    {% elif t.status == 'PENDING_REVIEW' %}
+                        <span class="badge bg-info text-dark">Por revisar</span>
+                    {% elif t.status == 'CANCELLED' %}
+                        <span class="badge bg-secondary">Cancelada</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                    {% endif %}
+                </td>
+                <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-5" style="color:#888;">
+                    <i class="bi bi-clipboard2-x fs-3 d-block mb-2"></i>
+                    No hay tareas para los filtros seleccionados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-{% else %}
-<div class="text-center py-5 opacity-75">
-  <i class="bi bi-inbox fs-1"></i>
-  <p class="mt-2">No hay tareas con esos filtros.</p>
-</div>
-{% endif %}
 {% endblock %}
