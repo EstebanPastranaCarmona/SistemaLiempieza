@@ -31,7 +31,9 @@
                 <th><i class="bi bi-arrow-down-circle me-1"></i>Mínimo</th>
                 <th><i class="bi bi-building me-1"></i>Proveedor</th>
                 <th><i class="bi bi-geo-alt me-1"></i>Ubicación almacén</th>
-                {% if user.is_admin %}<th></th>{% endif %}
+                {% if user.is_admin %}
+                <th class="text-end"><i class="bi bi-gear me-1"></i>Acciones</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
