@@ -135,7 +135,7 @@
                     <a href="{% url 'tasks:task_material_create' task.pk %}" class="btn-lc ms-auto">
                         <i class="bi bi-plus-lg me-1"></i>Agregar
                     </a>
-                    {% elif user == task.assigned_to and task.status in 'PENDING,IN_PROGRESS' %}
+                    {% elif user == task.assigned_to and task.status == 'PENDING' or user == task.assigned_to and task.status == 'IN_PROGRESS' %}
                     <a href="{% url 'tasks:task_material_create' task.pk %}" class="btn-lc ms-auto">
                         <i class="bi bi-plus-lg me-1"></i>Agregar material
                     </a>
@@ -209,7 +209,7 @@
                                  style="max-height:200px;object-fit:cover;width:100%;display:block;"
                                  loading="lazy">
                         </a>
-                        {% endif %}
+        {% endif %}
                     {% endif %}
                     {% if ev.note %}<p class="mb-1 small text-dark">{{ ev.note }}</p>{% endif %}
                     <small class="text-muted">{{ ev.uploaded_by.username }} — {{ ev.uploaded_at|date:"d/m/Y H:i" }}</small>
