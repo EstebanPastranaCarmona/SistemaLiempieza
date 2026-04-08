@@ -63,12 +63,11 @@
                 <td class="fw-semibold">{{ task.title }}</td>
                 <td>{{ task.client.name }}</td>
                 <td>{{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"—" }}</td>
+                <td>{{ task.scheduled_date }}</td>
                 <td>
-                    {{ task.scheduled_date }}
-                    {% if task.is_overdue %}<span class="badge bg-danger ms-1">Atrasada</span>{% endif %}
-                </td>
-                <td>
-                    {% if task.status == 'PENDING' %}
+                    {% if task.is_overdue %}
+                        <span class="badge bg-danger">Atrasada</span>
+                    {% elif task.status == 'PENDING' %}
                         <span class="badge bg-secondary">Pendiente</span>
                     {% elif task.status == 'IN_PROGRESS' %}
                         <span class="badge bg-warning text-dark">En progreso</span>
