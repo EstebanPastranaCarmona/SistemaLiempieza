@@ -81,7 +81,8 @@
             <tr>
                 {% for cell in row %}
                 <td>
-                    {% if   cell == 'Validada'              %}<span class="badge bg-success">{{ cell }}</span>
+                    {% if   cell == 'Atrasada'              %}<span class="badge bg-danger">{{ cell }}</span>
+                    {% elif cell == 'Validada'              %}<span class="badge bg-success">{{ cell }}</span>
                     {% elif cell == 'En progreso'           %}<span class="badge bg-warning text-dark">{{ cell }}</span>
                     {% elif cell == 'Pendiente de revisión' %}<span class="badge bg-info text-dark">{{ cell }}</span>
                     {% elif cell == 'Pendiente'             %}<span class="badge bg-secondary">{{ cell }}</span>
