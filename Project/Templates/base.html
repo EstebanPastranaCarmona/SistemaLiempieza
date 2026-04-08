@@ -270,6 +270,41 @@
         .alert-info     { background: rgba(0,176,255,0.15); border-left: 4px solid #00b0ff; color: #fff; }
         .btn-close { filter: invert(1); }
 
+        /* ── Tarjetas de alerta del dashboard (inventario, lotes, revisiones) ── */
+        /* Reemplazan las cards blancas con borde de Bootstrap por tarjetas
+           con el estilo glassmorphism del sistema. Usar con .alert-lc-card--danger,
+           --warning o --info según el tipo de alerta. */
+        .alert-lc-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--lc-border);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            color: var(--lc-text-light);
+        }
+        .alert-lc-card--danger  { border-left: 4px solid #f44336; }
+        .alert-lc-card--warning { border-left: 4px solid #ff9800; }
+        .alert-lc-card--info    { border-left: 4px solid #00b0ff; }
+
+        .alert-lc-card .alert-lc-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .alert-lc-card ul {
+            margin: 0;
+            padding-left: 1.25rem;
+            font-size: 0.85rem;
+            color: var(--lc-text-muted);
+        }
+        .alert-lc-card ul li { margin-bottom: 0.2rem; }
+        .alert-lc-card .alert-lc-action {
+            margin-top: 0.75rem;
+        }
+
         /* ── Responsive ───────────────────────────────────────────────────────────── */
         @media (max-width: 768px) {
             .main-container { padding-top: 72px; padding-left: 1rem; padding-right: 1rem; }
@@ -310,7 +345,6 @@
             {% if messages %}
             <div class="mb-3">
                 {% for msg in messages %}
-                {# Django usa 'error' pero Bootstrap necesita 'danger' — mapeamos aquí #}
                 {% if msg.tags == 'error' %}
                 <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
                     <i class="bi bi-x-circle-fill flex-shrink-0"></i>
