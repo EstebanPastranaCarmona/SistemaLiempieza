@@ -2,6 +2,7 @@
 {% block title %}Reportes{% endblock %}
 
 {% block body %}
+{# Header #}
 <div class="page-header d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="mb-1"><i class="bi bi-bar-chart-fill me-2"></i>Reportes</h4>
@@ -12,130 +13,163 @@
     </a>
 </div>
 
-{# ── KPIs Tareas ── #}
-<p class="text-white opacity-75 fw-semibold mb-2"><i class="bi bi-clipboard2-check me-1"></i> Tareas</p>
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card form-card text-center p-3">
-            <div class="fs-2 fw-bold text-success">{{ validated_tasks }}</div>
-            <small class="text-muted">Validadas</small>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card form-card text-center p-3">
-            <div class="fs-2 fw-bold {% if pending_review > 0 %}text-warning{% else %}text-success{% endif %}">{{ pending_review }}</div>
-            <small class="text-muted">En espera de revisión</small>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card form-card text-center p-3">
-            <div class="fs-2 fw-bold {% if overdue_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ overdue_count }}</div>
-            <small class="text-muted">Atrasadas</small>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card form-card text-center p-3">
-            <div class="fs-2 fw-bold text-info">{{ total_tasks }}</div>
-            <small class="text-muted">Total historial</small>
-        </div>
-    </div>
-</div>
+{# Tabs de navegación #}
+<ul class="nav nav-tabs mb-4" id="reportTabs" style="border-bottom: 2px solid rgba(255,255,255,0.15);">
+    <li class="nav-item">
+        <button class="nav-link active" id="tab-tareas" data-bs-toggle="tab" data-bs-target="#panel-tareas" type="button"
+            style="color: rgba(255,255,255,0.7); border: none; background: none; padding: .6rem 1.2rem; font-size: .95rem;">
+            <i class="bi bi-clipboard2-check me-1"></i> Tareas
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="tab-inventario" data-bs-toggle="tab" data-bs-target="#panel-inventario" type="button"
+            style="color: rgba(255,255,255,0.7); border: none; background: none; padding: .6rem 1.2rem; font-size: .95rem;">
+            <i class="bi bi-boxes me-1"></i> Inventario
+        </button>
+    </li>
+</ul>
 
-{# ── KPIs Inventario ── #}
-<p class="text-white opacity-75 fw-semibold mb-2"><i class="bi bi-boxes me-1"></i> Inventario</p>
-<div class="row g-3 mb-5">
-    <div class="col-6 col-md-4">
-        <div class="card form-card text-center p-3">
-            <div class="fs-2 fw-bold {% if low_stock_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ low_stock_count }}</div>
-            <small class="text-muted">Productos stock bajo</small>
-        </div>
-    </div>
-    <div class="col-6 col-md-4">
-        <div class="card form-card text-center p-3">
-            <div class="fs-2 fw-bold {% if expiring_lots_count > 0 %}text-warning{% else %}text-success{% endif %}">{{ expiring_lots_count }}</div>
-            <small class="text-muted">Lotes por vencer (30 días)</small>
-        </div>
-    </div>
-    <div class="col-6 col-md-4">
-        <div class="card form-card text-center p-3">
-            <div class="fs-2 fw-bold {% if expired_lots_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ expired_lots_count }}</div>
-            <small class="text-muted">Lotes vencidos</small>
-        </div>
-    </div>
-</div>
+<style>
+  #reportTabs .nav-link.active {
+    color: #fff !important;
+    border-bottom: 2px solid #fff !important;
+    font-weight: 600;
+  }
+  #reportTabs .nav-link:hover { color: #fff !important; }
+</style>
 
-{# ── Módulos: Tareas ── #}
-<p class="text-white opacity-75 fw-semibold mb-2"><i class="bi bi-clipboard2-check me-1"></i> Reportes de Tareas</p>
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <a href="{% url 'reports:tareas' %}" class="text-decoration-none">
-            <div class="dashboard-card p-4 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="card-icon"><i class="bi bi-clipboard2-check"></i></div>
-                    <div>
-                        <h6 class="mb-1 text-white">Historial de Tareas</h6>
-                        <small class="text-white opacity-75">Filtrar por fecha, cliente y estado</small>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-6">
-        <a href="{% url 'reports:clientes' %}" class="text-decoration-none">
-            <div class="dashboard-card p-4 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="card-icon"><i class="bi bi-building-check"></i></div>
-                    <div>
-                        <h6 class="mb-1 text-white">Cumplimiento por Cliente</h6>
-                        <small class="text-white opacity-75">% de tareas validadas por cliente</small>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-</div>
+<div class="tab-content">
 
-{# ── Módulos: Inventario ── #}
-<p class="text-white opacity-75 fw-semibold mb-2"><i class="bi bi-boxes me-1"></i> Reportes de Inventario</p>
-<div class="row g-3">
-    <div class="col-md-4">
-        <a href="{% url 'reports:inventario' %}" class="text-decoration-none">
-            <div class="dashboard-card p-4 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="card-icon"><i class="bi bi-boxes"></i></div>
-                    <div>
-                        <h6 class="mb-1 text-white">Estado de Productos</h6>
-                        <small class="text-white opacity-75">Stock actual y mínimos</small>
-                    </div>
+    {# ==================== PANEL TAREAS ==================== #}
+    <div class="tab-pane fade show active" id="panel-tareas">
+
+        {# KPIs Tareas #}
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card form-card text-center p-3">
+                    <div class="fs-2 fw-bold text-success">{{ validated_tasks }}</div>
+                    <small class="text-muted">Validadas</small>
                 </div>
             </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="{% url 'reports:consumo' %}" class="text-decoration-none">
-            <div class="dashboard-card p-4 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="card-icon"><i class="bi bi-arrow-down-circle"></i></div>
-                    <div>
-                        <h6 class="mb-1 text-white">Consumo de Materiales</h6>
-                        <small class="text-white opacity-75">Salidas de inventario por fecha</small>
-                    </div>
+            <div class="col-6 col-md-3">
+                <div class="card form-card text-center p-3">
+                    <div class="fs-2 fw-bold {% if pending_review > 0 %}text-warning{% else %}text-success{% endif %}">{{ pending_review }}</div>
+                    <small class="text-muted">En espera de revisión</small>
                 </div>
             </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="{% url 'reports:stock_bajo' %}" class="text-decoration-none">
-            <div class="dashboard-card p-4 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="card-icon"><i class="bi bi-exclamation-triangle"></i></div>
-                    <div>
-                        <h6 class="mb-1 text-white">Alertas de Stock</h6>
-                        <small class="text-white opacity-75">Stock bajo y lotes vencidos</small>
-                    </div>
+            <div class="col-6 col-md-3">
+                <div class="card form-card text-center p-3">
+                    <div class="fs-2 fw-bold {% if overdue_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ overdue_count }}</div>
+                    <small class="text-muted">Atrasadas</small>
                 </div>
             </div>
-        </a>
+            <div class="col-6 col-md-3">
+                <div class="card form-card text-center p-3">
+                    <div class="fs-2 fw-bold text-info">{{ total_tasks }}</div>
+                    <small class="text-muted">Total historial</small>
+                </div>
+            </div>
+        </div>
+
+        {# Accesos rápidos Tareas #}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <a href="{% url 'reports:tareas' %}" class="text-decoration-none">
+                    <div class="dashboard-card p-4 h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="card-icon"><i class="bi bi-clipboard2-check"></i></div>
+                            <div>
+                                <h6 class="mb-1 text-white">Historial de Tareas</h6>
+                                <small class="text-white opacity-75">Filtrar por fecha, cliente y estado</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="{% url 'reports:clientes' %}" class="text-decoration-none">
+                    <div class="dashboard-card p-4 h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="card-icon"><i class="bi bi-building-check"></i></div>
+                            <div>
+                                <h6 class="mb-1 text-white">Cumplimiento por Cliente</h6>
+                                <small class="text-white opacity-75">% de tareas validadas por cliente</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
     </div>
+
+    {# ==================== PANEL INVENTARIO ==================== #}
+    <div class="tab-pane fade" id="panel-inventario">
+
+        {# KPIs Inventario #}
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4">
+                <div class="card form-card text-center p-3">
+                    <div class="fs-2 fw-bold {% if low_stock_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ low_stock_count }}</div>
+                    <small class="text-muted">Productos stock bajo</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card form-card text-center p-3">
+                    <div class="fs-2 fw-bold {% if expiring_lots_count > 0 %}text-warning{% else %}text-success{% endif %}">{{ expiring_lots_count }}</div>
+                    <small class="text-muted">Lotes por vencer (30 días)</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card form-card text-center p-3">
+                    <div class="fs-2 fw-bold {% if expired_lots_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ expired_lots_count }}</div>
+                    <small class="text-muted">Lotes vencidos</small>
+                </div>
+            </div>
+        </div>
+
+        {# Accesos rápidos Inventario #}
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{% url 'reports:inventario' %}" class="text-decoration-none">
+                    <div class="dashboard-card p-4 h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="card-icon"><i class="bi bi-boxes"></i></div>
+                            <div>
+                                <h6 class="mb-1 text-white">Estado de Productos</h6>
+                                <small class="text-white opacity-75">Stock actual y mínimos</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'reports:consumo' %}" class="text-decoration-none">
+                    <div class="dashboard-card p-4 h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="card-icon"><i class="bi bi-arrow-down-circle"></i></div>
+                            <div>
+                                <h6 class="mb-1 text-white">Consumo de Materiales</h6>
+                                <small class="text-white opacity-75">Salidas de inventario por fecha</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'reports:stock_bajo' %}" class="text-decoration-none">
+                    <div class="dashboard-card p-4 h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                            <div>
+                                <h6 class="mb-1 text-white">Alertas de Stock</h6>
+                                <small class="text-white opacity-75">Stock bajo y lotes vencidos</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}
