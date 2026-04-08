@@ -1,86 +1,110 @@
 {% extends "base.html" %}
-{% block title %}Reportes — Tareas{% endblock %}
+{% block title %}Reporte de Tareas{% endblock %}
 
 {% block body %}
 
+{# Page header #}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h4 class="mb-1"><i class="bi bi-clipboard2-check-fill me-2"></i>Reporte de Tareas</h4>
-        <small class="opacity-75">Listado completo de tareas con filtros</small>
+        <h4 class="mb-1"><i class="bi bi-clipboard-check me-2"></i>Reporte de Tareas</h4>
+        <small class="opacity-75">Consulta el estado de las tareas por rango de fecha o cliente</small>
     </div>
-    <a href="{% url 'reports:dashboard' %}" class="btn btn-sm btn-outline-light">
-        <i class="bi bi-arrow-left me-1"></i>Volver a Reportes
+    <a href="{% url 'users:dashboard' %}" class="btn-lc-outline">
+        <i class="bi bi-arrow-left me-1"></i>Dashboard
     </a>
 </div>
 
-{# Filtros #}
-<form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-    <select name="status" class="form-select form-select-sm" style="max-width:200px;">
-        <option value="">Todos los estados</option>
-        {% for val, label in status_choices %}
-        <option value="{{ val }}" {% if status_f == val %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-    </select>
-    <select name="client" class="form-select form-select-sm" style="max-width:200px;">
-        <option value="">Todos los clientes</option>
-        {% for c in clients %}
-        <option value="{{ c.pk }}" {% if client_id == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
-        {% endfor %}
-    </select>
-    <button type="submit" class="btn-lc"><i class="bi bi-funnel me-1"></i>Filtrar</button>
-    <a href="{% url 'reports:tasks' %}" class="btn-lc-outline">Limpiar</a>
-</form>
+{# Formulario de filtros #}
+<div class="form-card mb-4">
+    <div class="card-header">
+        <i class="bi bi-sliders me-2"></i>Filtros
+    </div>
+    <div class="p-4">
+        <form method="get">
+            <div class="row g-3 align-items-end">
 
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Tipo de reporte</label>
+                    <select name="tipo" class="form-select">
+                        <option value="">-- Selecciona --</option>
+                        <option value="general"     {% if tipo == 'general'     %}selected{% endif %}>Listado general</option>
+                        <option value="vencidas"    {% if tipo == 'vencidas'    %}selected{% endif %}>Tareas vencidas</option>
+                        <option value="por_cliente" {% if tipo == 'por_cliente' %}selected{% endif %}>Resumen por cliente</option>
+                    </select>
+                </div>
+
+                {% if tipo == 'general' or tipo == 'vencidas' %}
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Cliente</label>
+                    <select name="client" class="form-select">
+                        <option value="">Todos los clientes</option>
+                        {% for c in clients %}
+                        <option value="{{ c.pk }}" {% if client_id == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                {% if tipo == 'general' %}
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Desde</label>
+                    <input type="date" name="date_from" value="{{ date_from }}" class="form-control">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Hasta</label>
+                    <input type="date" name="date_to" value="{{ date_to }}" class="form-control">
+                </div>
+                {% endif %}
+
+                <div class="col-12 col-md-2">
+                    <button type="submit" class="btn-lc w-100 justify-content-center" style="height:42px;">
+                        <i class="bi bi-search me-2"></i>Generar
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+{# Tabla de resultados #}
+{% if tipo and headers %}
+<p class="text-white opacity-75 mb-2" style="font-size:.82rem;">
+    <i class="bi bi-table me-1"></i><strong>{{ rows|length }}</strong> registro{{ rows|length|pluralize:"s" }}
+</p>
 <div class="table-wrapper">
     <table class="table table-lc table-hover mb-0">
         <thead>
             <tr>
-                <th class="ps-3"><i class="bi bi-hash me-1"></i>#</th>
-                <th><i class="bi bi-card-heading me-1"></i>Título</th>
-                <th><i class="bi bi-building me-1"></i>Cliente</th>
-                <th><i class="bi bi-calendar me-1"></i>Fecha programada</th>
-                <th><i class="bi bi-circle-fill me-1"></i>Estado</th>
-                <th><i class="bi bi-person me-1"></i>Asignado a</th>
+                {% for h in headers %}<th>{{ h }}</th>{% endfor %}
             </tr>
         </thead>
         <tbody>
-            {% for t in tasks %}
+            {% for row in rows %}
             <tr>
-                <td class="ps-3 text-muted">{{ t.pk }}</td>
-                <td class="fw-semibold">{{ t.title }}</td>
-                <td>{{ t.client.name }}</td>
+                {% for cell in row %}
                 <td>
-                    {{ t.scheduled_date|date:"d/m/Y" }}
-                    {% if t.scheduled_time %}
-                        <small class="text-muted">{{ t.scheduled_time|time:"H:i" }}</small>
+                    {% if   cell == 'Validada'               %}<span class="badge bg-success">{{ cell }}</span>
+                    {% elif cell == 'En progreso'            %}<span class="badge bg-primary">{{ cell }}</span>
+                    {% elif cell == 'Pendiente de revisión'  %}<span class="badge bg-info text-dark">{{ cell }}</span>
+                    {% elif cell == 'Pendiente'              %}<span class="badge bg-warning text-dark">{{ cell }}</span>
+                    {% else %}{{ cell }}
                     {% endif %}
                 </td>
-                <td>
-                    {% if t.status == 'VALIDATED' %}
-                        <span class="badge bg-success">Validada</span>
-                    {% elif t.status == 'IN_PROGRESS' %}
-                        <span class="badge bg-primary">En progreso</span>
-                    {% elif t.status == 'PENDING_REVIEW' %}
-                        <span class="badge bg-info text-dark">Por revisar</span>
-                    {% else %}
-                        <span class="badge bg-warning text-dark">Pendiente</span>
-                    {% endif %}
-                    {% if t.scheduled_date < today and t.status in 'PENDING IN_PROGRESS' %}
-                        <span class="badge bg-danger ms-1">Vencida</span>
-                    {% endif %}
-                </td>
-                <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username|default:"—" }}</td>
+                {% endfor %}
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center py-5" style="color:#888;">
-                    <i class="bi bi-clipboard2-x fs-3 d-block mb-2"></i>
-                    No hay tareas para los filtros seleccionados.
+                <td colspan="{{ headers|length }}" class="text-center py-5" style="color:#888;">
+                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>No hay datos para mostrar.
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+{% elif tipo %}
+<div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No hay datos para el reporte seleccionado.</div>
+{% endif %}
 
 {% endblock %}
