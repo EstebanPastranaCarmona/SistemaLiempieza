@@ -2,119 +2,160 @@
 {% block title %}Reportes{% endblock %}
 
 {% block body %}
-<div class="page-header">
-  <h1 class="page-title">Panel de Reportes</h1>
-  <p class="page-subtitle">Resumen general del sistema al {{ today }}</p>
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-bar-chart-fill me-2"></i>Panel de Reportes</h4>
+        <small class="opacity-75">Resumen general del sistema al {{ today }}</small>
+    </div>
 </div>
 
-<h2 class="section-label">Inventario</h2>
-<div class="report-grid">
+<!-- Inventario -->
+<h6 class="text-white opacity-75 text-uppercase fw-semibold mb-3" style="letter-spacing:.05em">Inventario</h6>
+<div class="row g-4 mb-4">
 
-  <a href="{% url 'reports:inventory' %}" class="report-card">
-    <div class="report-card__icon inventory">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-      </svg>
+    <div class="col-md-3">
+        <a href="{% url 'reports:inventory' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-layers-fill"></i></div>
+                    <div>
+                        <h6 class="mb-1 text-white">{{ total_products }}</h6>
+                        <small class="text-white opacity-75">Productos activos</small>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
-    <div class="report-card__body">
-      <span class="report-card__label">Productos activos</span>
-      <span class="report-card__value">{{ total_products }}</span>
-    </div>
-  </a>
 
-  <a href="{% url 'reports:low_stock' %}" class="report-card report-card--warn">
-    <div class="report-card__icon warn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
+    <div class="col-md-3">
+        <a href="{% url 'reports:low_stock' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100" {% if low_stock_count > 0 %}style="border-color:rgba(255,193,7,.5)"{% endif %}>
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <div>
+                        <h6 class="mb-1 {% if low_stock_count > 0 %}text-warning{% else %}text-white{% endif %}">{{ low_stock_count }}</h6>
+                        <small class="text-white opacity-75">Stock bajo</small>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
-    <div class="report-card__body">
-      <span class="report-card__label">Stock bajo</span>
-      <span class="report-card__value {% if low_stock_count > 0 %}text-warn{% endif %}">{{ low_stock_count }}</span>
-    </div>
-  </a>
 
-  <a href="{% url 'reports:low_stock' %}" class="report-card {% if expiring_soon > 0 %}report-card--warn{% endif %}">
-    <div class="report-card__icon warn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-      </svg>
+    <div class="col-md-3">
+        <a href="{% url 'reports:low_stock' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100" {% if expiring_soon > 0 %}style="border-color:rgba(255,193,7,.5)"{% endif %}>
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-clock-fill"></i></div>
+                    <div>
+                        <h6 class="mb-1 {% if expiring_soon > 0 %}text-warning{% else %}text-white{% endif %}">{{ expiring_soon }}</h6>
+                        <small class="text-white opacity-75">Vencen en 7 días</small>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
-    <div class="report-card__body">
-      <span class="report-card__label">Vencen en 7 días</span>
-      <span class="report-card__value {% if expiring_soon > 0 %}text-warn{% endif %}">{{ expiring_soon }} lotes</span>
-    </div>
-  </a>
 
-  <a href="{% url 'reports:low_stock' %}" class="report-card {% if expired_count > 0 %}report-card--error{% endif %}">
-    <div class="report-card__icon error">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-      </svg>
+    <div class="col-md-3">
+        <a href="{% url 'reports:low_stock' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100" {% if expired_count > 0 %}style="border-color:rgba(220,53,69,.5)"{% endif %}>
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-x-circle-fill"></i></div>
+                    <div>
+                        <h6 class="mb-1 {% if expired_count > 0 %}text-danger{% else %}text-white{% endif %}">{{ expired_count }}</h6>
+                        <small class="text-white opacity-75">Lotes vencidos</small>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
-    <div class="report-card__body">
-      <span class="report-card__label">Lotes vencidos</span>
-      <span class="report-card__value {% if expired_count > 0 %}text-error{% endif %}">{{ expired_count }}</span>
-    </div>
-  </a>
-
-</div>
-
-<h2 class="section-label" style="margin-top:2rem">Tareas</h2>
-<div class="report-grid">
-
-  <a href="{% url 'reports:tasks' %}?status=PENDING" class="report-card">
-    <div class="report-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-    <div class="report-card__body">
-      <span class="report-card__label">Pendientes</span>
-      <span class="report-card__value">{{ tasks_pending }}</span>
-    </div>
-  </a>
-
-  <a href="{% url 'reports:tasks' %}?status=IN_PROGRESS" class="report-card">
-    <div class="report-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.89-8.91"/></svg></div>
-    <div class="report-card__body">
-      <span class="report-card__label">En progreso</span>
-      <span class="report-card__value">{{ tasks_progress }}</span>
-    </div>
-  </a>
-
-  <a href="{% url 'reports:tasks' %}?status=PENDING_REVIEW" class="report-card {% if tasks_review > 0 %}report-card--info{% endif %}">
-    <div class="report-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
-    <div class="report-card__body">
-      <span class="report-card__label">Por revisar</span>
-      <span class="report-card__value">{{ tasks_review }}</span>
-    </div>
-  </a>
-
-  <a href="{% url 'reports:tasks' %}?status=VALIDATED" class="report-card report-card--success">
-    <div class="report-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
-    <div class="report-card__body">
-      <span class="report-card__label">Validadas</span>
-      <span class="report-card__value">{{ tasks_validated }}</span>
-    </div>
-  </a>
-
-  {% if tasks_overdue > 0 %}
-  <a href="{% url 'reports:tasks' %}" class="report-card report-card--error">
-    <div class="report-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-    <div class="report-card__body">
-      <span class="report-card__label">Tareas vencidas</span>
-      <span class="report-card__value text-error">{{ tasks_overdue }}</span>
-    </div>
-  </a>
-  {% endif %}
 
 </div>
 
-<h2 class="section-label" style="margin-top:2rem">Reportes detallados</h2>
-<div class="quick-links">
-  <a href="{% url 'reports:inventory' %}" class="quick-link">Estado del inventario</a>
-  <a href="{% url 'reports:tasks' %}" class="quick-link">Reporte de tareas</a>
-  <a href="{% url 'reports:consumption' %}" class="quick-link">Consumo de materiales</a>
-  <a href="{% url 'reports:clients' %}" class="quick-link">Servicios por cliente</a>
-  <a href="{% url 'reports:low_stock' %}" class="quick-link quick-link--warn">Alertas de stock y vencimientos</a>
+<!-- Tareas -->
+<h6 class="text-white opacity-75 text-uppercase fw-semibold mb-3" style="letter-spacing:.05em">Tareas</h6>
+<div class="row g-4 mb-4">
+
+    <div class="col-md-3">
+        <a href="{% url 'reports:tasks' %}?status=PENDING" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-hourglass-split"></i></div>
+                    <div>
+                        <h6 class="mb-1 text-white">{{ tasks_pending }}</h6>
+                        <small class="text-white opacity-75">Pendientes</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'reports:tasks' %}?status=IN_PROGRESS" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-arrow-repeat"></i></div>
+                    <div>
+                        <h6 class="mb-1 text-white">{{ tasks_progress }}</h6>
+                        <small class="text-white opacity-75">En progreso</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'reports:tasks' %}?status=PENDING_REVIEW" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100" {% if tasks_review > 0 %}style="border-color:rgba(0,176,255,.5)"{% endif %}>
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-eye-fill"></i></div>
+                    <div>
+                        <h6 class="mb-1 text-white">{{ tasks_review }}</h6>
+                        <small class="text-white opacity-75">Por revisar</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{% url 'reports:tasks' %}?status=VALIDATED" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-patch-check-fill"></i></div>
+                    <div>
+                        <h6 class="mb-1 text-white">{{ tasks_validated }}</h6>
+                        <small class="text-white opacity-75">Validadas</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    {% if tasks_overdue > 0 %}
+    <div class="col-md-3">
+        <a href="{% url 'reports:tasks' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100" style="border-color:rgba(220,53,69,.5)">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-calendar-x-fill"></i></div>
+                    <div>
+                        <h6 class="mb-1 text-danger">{{ tasks_overdue }}</h6>
+                        <small class="text-white opacity-75">Vencidas</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Accesos directos -->
+<h6 class="text-white opacity-75 text-uppercase fw-semibold mb-3" style="letter-spacing:.05em">Reportes detallados</h6>
+<div class="row g-3">
+    <div class="col-auto"><a href="{% url 'reports:inventory' %}" class="btn-lc"><i class="bi bi-layers me-1"></i>Estado del inventario</a></div>
+    <div class="col-auto"><a href="{% url 'reports:tasks' %}" class="btn-lc"><i class="bi bi-clipboard2-check me-1"></i>Reporte de tareas</a></div>
+    <div class="col-auto"><a href="{% url 'reports:consumption' %}" class="btn-lc"><i class="bi bi-graph-down-arrow me-1"></i>Consumo de materiales</a></div>
+    <div class="col-auto"><a href="{% url 'reports:clients' %}" class="btn-lc"><i class="bi bi-building me-1"></i>Servicios por cliente</a></div>
+    <div class="col-auto"><a href="{% url 'reports:low_stock' %}" class="btn-lc"><i class="bi bi-exclamation-triangle me-1"></i>Alertas de stock</a></div>
 </div>
 {% endblock %}
