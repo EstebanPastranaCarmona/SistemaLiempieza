@@ -48,6 +48,11 @@ class LotForm(forms.ModelForm):
             'expiration_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Solo mostrar productos activos (no archivados)
+        self.fields['product'].queryset = Product.objects.filter(is_active=True).order_by('name')
+
 
 class MovementForm(forms.ModelForm):
     class Meta:
@@ -65,3 +70,11 @@ class MovementForm(forms.ModelForm):
             'quantity':      forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'step': '1'}),
             'reason':        forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Solo mostrar lotes activos (cuyo producto tampoco esté archivado)
+        self.fields['lot'].queryset = Lot.objects.filter(
+            is_active=True,
+            product__is_active=True
+        ).select_related('product').order_by('product__name', 'expiration_date')
