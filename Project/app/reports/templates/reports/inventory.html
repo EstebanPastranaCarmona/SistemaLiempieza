@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Reporte de Inventario{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Inventario General</h1>
+    <p class="page-subtitle">Estado actual de todos los productos activos</p>
+  </div>
+  <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost">← Volver</a>
+</div>
+
+<div class="filter-bar">
+  <form method="get" class="filter-form">
+    <label class="filter-label">Filtrar por:
+      <select name="status" class="form-select" onchange="this.form.submit()">
+        <option value=""     {% if not filter_status %}selected{% endif %}>Todos los productos</option>
+        <option value="low"  {% if filter_status == 'low' %}selected{% endif %}>Stock bajo</option>
+        <option value="expiring" {% if filter_status == 'expiring' %}selected{% endif %}>Vencen en 7 días</option>
+        <option value="expired"  {% if filter_status == 'expired' %}selected{% endif %}>Vencidos</option>
+      </select>
+    </label>
+  </form>
+</div>
+
+{% if rows %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Producto</th><th>Tipo</th><th>Stock total</th><th>Stock mínimo</th>
+        <th>Lotes activos</th><th>Lotes vencidos</th><th>Vencen pronto</th><th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr class="{% if row.is_low %}row-warn{% endif %}">
+        <td class="td-product">{{ row.product.name }}</td>
+        <td class="td-muted">{{ row.product.product_type }}</td>
+        <td class="td-num">{{ row.total_stock }} {{ row.product.unit }}</td>
+        <td class="td-num muted">{{ row.product.min_stock }} {{ row.product.unit }}</td>
+        <td class="td-num">{{ row.lot_count }}</td>
+        <td class="td-num {% if row.expired_lots > 0 %}text-error{% endif %}">{{ row.expired_lots }}</td>
+        <td class="td-num {% if row.expiring_lots > 0 %}text-warn{% endif %}">{{ row.expiring_lots }}</td>
+        <td>
+          {% if row.is_low %}<span class="badge badge-warn">Stock bajo</span>
+          {% elif row.expired_lots > 0 %}<span class="badge badge-error">Vencido</span>
+          {% elif row.expiring_lots > 0 %}<span class="badge badge-warn">Vence pronto</span>
+          {% else %}<span class="badge badge-ok">Normal</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>No se encontraron productos con ese filtro.</p>
+  <a href="{% url 'reports:inventory' %}" class="btn btn-primary">Ver todos</a>
+</div>
+{% endif %}
+{% endblock %}

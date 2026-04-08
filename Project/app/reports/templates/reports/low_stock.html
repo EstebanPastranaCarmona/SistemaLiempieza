@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Alertas de Inventario{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Alertas de Inventario</h1>
+    <p class="page-subtitle">Productos con stock bajo y lotes próximos a vencer</p>
+  </div>
+  <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost">← Volver</a>
+</div>
+
+{% if low_products %}
+<div class="alert-section">
+  <h2 class="section-label section-label--warn">Productos con stock bajo ({{ low_products|length }})</h2>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Producto</th><th>Stock actual</th><th>Stock mínimo</th></tr></thead>
+      <tbody>
+        {% for p in low_products %}
+        <tr class="row-warn">
+          <td class="td-product">{{ p.name }}</td>
+          <td class="td-num text-error">{{ p.get_total_stock }} {{ p.unit }}</td>
+          <td class="td-num muted">{{ p.min_stock }} {{ p.unit }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="alert-section alert-section--ok">
+  <p>✓ Todos los productos tienen stock suficiente.</p>
+</div>
+{% endif %}
+
+{% if expiring_lots %}
+<div class="alert-section" style="margin-top:var(--space-8)">
+  <h2 class="section-label section-label--warn">Lotes que vencen en los próximos 7 días ({{ expiring_lots|length }})</h2>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Producto</th><th>Lote #</th><th>Cantidad</th><th>Vence el</th><th>Días restantes</th></tr></thead>
+      <tbody>
+        {% for lot in expiring_lots %}
+        <tr class="row-warn">
+          <td class="td-product">{{ lot.product.name }}</td>
+          <td class="td-num muted">#{{ lot.id }}</td>
+          <td class="td-num">{{ lot.quantity }} {{ lot.product.unit }}</td>
+          <td class="td-num">{{ lot.expiration_date }}</td>
+          <td class="td-num text-warn">{{ lot.days_until_expiration }} días</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if expired_lots %}
+<div class="alert-section" style="margin-top:var(--space-8)">
+  <h2 class="section-label section-label--error">Lotes vencidos activos ({{ expired_lots|length }})</h2>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Producto</th><th>Lote #</th><th>Cantidad</th><th>Venció el</th></tr></thead>
+      <tbody>
+        {% for lot in expired_lots %}
+        <tr class="row-error">
+          <td class="td-product">{{ lot.product.name }}</td>
+          <td class="td-num muted">#{{ lot.id }}</td>
+          <td class="td-num">{{ lot.quantity }} {{ lot.product.unit }}</td>
+          <td class="td-num text-error">{{ lot.expiration_date }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="alert-section alert-section--ok" style="margin-top:var(--space-8)">
+  <p>✓ No hay lotes vencidos activos.</p>
+</div>
+{% endif %}
+{% endblock %}

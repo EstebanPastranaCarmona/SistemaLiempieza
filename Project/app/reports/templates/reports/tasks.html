@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Reporte de Tareas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Reporte de Tareas</h1>
+    <p class="page-subtitle">Historial y estado de tareas programadas</p>
+  </div>
+  <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost">← Volver</a>
+</div>
+
+<div class="status-summary">
+  <div class="status-chip"><span class="dot dot-pending"></span>Pendientes <strong>{{ summary_dict.PENDING|default:0 }}</strong></div>
+  <div class="status-chip"><span class="dot dot-progress"></span>En progreso <strong>{{ summary_dict.IN_PROGRESS|default:0 }}</strong></div>
+  <div class="status-chip"><span class="dot dot-review"></span>Por revisar <strong>{{ summary_dict.PENDING_REVIEW|default:0 }}</strong></div>
+  <div class="status-chip"><span class="dot dot-validated"></span>Validadas <strong>{{ summary_dict.VALIDATED|default:0 }}</strong></div>
+</div>
+
+<div class="filter-bar">
+  <form method="get" class="filter-form">
+    <label class="filter-label">Desde <input type="date" name="date_from" value="{{ date_from }}" class="form-input"></label>
+    <label class="filter-label">Hasta  <input type="date" name="date_to"   value="{{ date_to }}"   class="form-input"></label>
+    <label class="filter-label">Cliente
+      <select name="client" class="form-select">
+        <option value="">Todos</option>
+        {% for c in clients %}
+          <option value="{{ c.id }}" {% if client_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="filter-label">Estado
+      <select name="status" class="form-select">
+        <option value="">Todos</option>
+        {% for val, label in status_choices %}
+          <option value="{{ val }}" {% if status_f == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+  </form>
+</div>
+
+{% if tasks %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr><th>Tarea</th><th>Cliente</th><th>Ubicación</th><th>Fecha</th><th>Asignado a</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      {% for task in tasks %}
+      <tr>
+        <td><a href="{% url 'tasks:task_detail' task.pk %}" class="link">{{ task.title }}</a></td>
+        <td class="td-muted">{{ task.client.name }}</td>
+        <td class="td-muted">{{ task.location.name|default:"—" }}</td>
+        <td class="td-num">{{ task.scheduled_date }}</td>
+        <td>{{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"—" }}</td>
+        <td>
+          {% if task.status == 'PENDING' %}<span class="badge badge-pending">Pendiente</span>
+          {% elif task.status == 'IN_PROGRESS' %}<span class="badge badge-progress">En progreso</span>
+          {% elif task.status == 'PENDING_REVIEW' %}<span class="badge badge-review">Por revisar</span>
+          {% elif task.status == 'VALIDATED' %}<span class="badge badge-ok">Validada</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state"><p>No hay tareas para el rango y filtros seleccionados.</p></div>
+{% endif %}
+{% endblock %}
