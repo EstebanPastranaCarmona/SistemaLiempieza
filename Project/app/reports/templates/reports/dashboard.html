@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Reportes{% endblock %}
 
-{% block content %}
+{% block body %}
 <div class="page-header">
   <h1 class="page-title">Panel de Reportes</h1>
   <p class="page-subtitle">Resumen general del sistema al {{ today }}</p>
@@ -62,7 +62,7 @@
 
 </div>
 
-<h2 class="section-label" style="margin-top:var(--space-8)">Tareas</h2>
+<h2 class="section-label" style="margin-top:2rem">Tareas</h2>
 <div class="report-grid">
 
   <a href="{% url 'reports:tasks' %}?status=PENDING" class="report-card">
@@ -74,7 +74,7 @@
   </a>
 
   <a href="{% url 'reports:tasks' %}?status=IN_PROGRESS" class="report-card">
-    <div class="report-card__icon progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.89-8.91"/></svg></div>
+    <div class="report-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.89-8.91"/></svg></div>
     <div class="report-card__body">
       <span class="report-card__label">En progreso</span>
       <span class="report-card__value">{{ tasks_progress }}</span>
@@ -82,7 +82,7 @@
   </a>
 
   <a href="{% url 'reports:tasks' %}?status=PENDING_REVIEW" class="report-card {% if tasks_review > 0 %}report-card--info{% endif %}">
-    <div class="report-card__icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+    <div class="report-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
     <div class="report-card__body">
       <span class="report-card__label">Por revisar</span>
       <span class="report-card__value">{{ tasks_review }}</span>
@@ -90,7 +90,7 @@
   </a>
 
   <a href="{% url 'reports:tasks' %}?status=VALIDATED" class="report-card report-card--success">
-    <div class="report-card__icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="report-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
     <div class="report-card__body">
       <span class="report-card__label">Validadas</span>
       <span class="report-card__value">{{ tasks_validated }}</span>
@@ -99,7 +99,7 @@
 
   {% if tasks_overdue > 0 %}
   <a href="{% url 'reports:tasks' %}" class="report-card report-card--error">
-    <div class="report-card__icon error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="report-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
     <div class="report-card__body">
       <span class="report-card__label">Tareas vencidas</span>
       <span class="report-card__value text-error">{{ tasks_overdue }}</span>
@@ -109,7 +109,7 @@
 
 </div>
 
-<h2 class="section-label" style="margin-top:var(--space-8)">Reportes detallados</h2>
+<h2 class="section-label" style="margin-top:2rem">Reportes detallados</h2>
 <div class="quick-links">
   <a href="{% url 'reports:inventory' %}" class="quick-link">Estado del inventario</a>
   <a href="{% url 'reports:tasks' %}" class="quick-link">Reporte de tareas</a>

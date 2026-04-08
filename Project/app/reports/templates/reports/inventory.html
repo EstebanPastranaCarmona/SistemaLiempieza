@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Reporte de Inventario{% endblock %}
 
-{% block content %}
-<div class="page-header">
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h1 class="page-title">Inventario General</h1>
-    <p class="page-subtitle">Estado actual de todos los productos activos</p>
+    <h4 class="mb-1"><i class="bi bi-layers-fill me-2"></i>Inventario General</h4>
+    <small class="opacity-75">Estado actual de todos los productos activos</small>
   </div>
-  <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost">← Volver</a>
+  <a href="{% url 'reports:dashboard' %}" class="btn-lc-outline">&#8592; Volver</a>
 </div>
 
-<div class="filter-bar">
-  <form method="get" class="filter-form">
-    <label class="filter-label">Filtrar por:
-      <select name="status" class="form-select" onchange="this.form.submit()">
-        <option value=""     {% if not filter_status %}selected{% endif %}>Todos los productos</option>
-        <option value="low"  {% if filter_status == 'low' %}selected{% endif %}>Stock bajo</option>
+<div class="mb-3">
+  <form method="get" class="d-flex align-items-center gap-3">
+    <label class="text-white opacity-75 mb-0">Filtrar:
+      <select name="status" class="form-select form-select-sm ms-2" style="width:auto;display:inline-block" onchange="this.form.submit()">
+        <option value=""       {% if not filter_status %}selected{% endif %}>Todos</option>
+        <option value="low"    {% if filter_status == 'low' %}selected{% endif %}>Stock bajo</option>
         <option value="expiring" {% if filter_status == 'expiring' %}selected{% endif %}>Vencen en 7 días</option>
         <option value="expired"  {% if filter_status == 'expired' %}selected{% endif %}>Vencidos</option>
       </select>
@@ -25,28 +25,26 @@
 
 {% if rows %}
 <div class="table-wrapper">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Producto</th><th>Tipo</th><th>Stock total</th><th>Stock mínimo</th>
-        <th>Lotes activos</th><th>Lotes vencidos</th><th>Vencen pronto</th><th>Estado</th>
-      </tr>
-    </thead>
+  <table class="table table-lc table-hover">
+    <thead><tr>
+      <th>Producto</th><th>Tipo</th><th>Stock total</th><th>Stock mínimo</th>
+      <th>Lotes activos</th><th>Lotes vencidos</th><th>Vencen pronto</th><th>Estado</th>
+    </tr></thead>
     <tbody>
       {% for row in rows %}
-      <tr class="{% if row.is_low %}row-warn{% endif %}">
-        <td class="td-product">{{ row.product.name }}</td>
-        <td class="td-muted">{{ row.product.product_type }}</td>
-        <td class="td-num">{{ row.total_stock }} {{ row.product.unit }}</td>
-        <td class="td-num muted">{{ row.product.min_stock }} {{ row.product.unit }}</td>
-        <td class="td-num">{{ row.lot_count }}</td>
-        <td class="td-num {% if row.expired_lots > 0 %}text-error{% endif %}">{{ row.expired_lots }}</td>
-        <td class="td-num {% if row.expiring_lots > 0 %}text-warn{% endif %}">{{ row.expiring_lots }}</td>
+      <tr>
+        <td><strong>{{ row.product.name }}</strong></td>
+        <td class="text-muted">{{ row.product.product_type }}</td>
+        <td>{{ row.total_stock }} {{ row.product.unit }}</td>
+        <td class="text-muted">{{ row.product.min_stock }} {{ row.product.unit }}</td>
+        <td>{{ row.lot_count }}</td>
+        <td>{% if row.expired_lots > 0 %}<span class="badge bg-danger">{{ row.expired_lots }}</span>{% else %}0{% endif %}</td>
+        <td>{% if row.expiring_lots > 0 %}<span class="badge bg-warning text-dark">{{ row.expiring_lots }}</span>{% else %}0{% endif %}</td>
         <td>
-          {% if row.is_low %}<span class="badge badge-warn">Stock bajo</span>
-          {% elif row.expired_lots > 0 %}<span class="badge badge-error">Vencido</span>
-          {% elif row.expiring_lots > 0 %}<span class="badge badge-warn">Vence pronto</span>
-          {% else %}<span class="badge badge-ok">Normal</span>{% endif %}
+          {% if row.is_low %}<span class="badge bg-warning text-dark">Stock bajo</span>
+          {% elif row.expired_lots > 0 %}<span class="badge bg-danger">Vencido</span>
+          {% elif row.expiring_lots > 0 %}<span class="badge bg-warning text-dark">Vence pronto</span>
+          {% else %}<span class="badge bg-success">Normal</span>{% endif %}
         </td>
       </tr>
       {% endfor %}
@@ -54,9 +52,10 @@
   </table>
 </div>
 {% else %}
-<div class="empty-state">
-  <p>No se encontraron productos con ese filtro.</p>
-  <a href="{% url 'reports:inventory' %}" class="btn btn-primary">Ver todos</a>
+<div class="text-center py-5 opacity-75">
+  <i class="bi bi-inbox fs-1"></i>
+  <p class="mt-2">No se encontraron productos con ese filtro.</p>
+  <a href="{% url 'reports:inventory' %}" class="btn-lc">Ver todos</a>
 </div>
 {% endif %}
 {% endblock %}

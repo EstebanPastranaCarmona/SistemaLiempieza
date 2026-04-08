@@ -1,47 +1,34 @@
 {% extends "base.html" %}
 {% block title %}Servicios por Cliente{% endblock %}
 
-{% block content %}
-<div class="page-header">
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h1 class="page-title">Servicios por Cliente</h1>
-    <p class="page-subtitle">Tareas realizadas por cliente en el período seleccionado</p>
+    <h4 class="mb-1"><i class="bi bi-building me-2"></i>Servicios por Cliente</h4>
+    <small class="opacity-75">Cumplimiento de tareas por empresa</small>
   </div>
-  <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost">← Volver</a>
-</div>
-
-<div class="filter-bar">
-  <form method="get" class="filter-form">
-    <label class="filter-label">Desde <input type="date" name="date_from" value="{{ date_from }}" class="form-input"></label>
-    <label class="filter-label">Hasta  <input type="date" name="date_to"   value="{{ date_to }}"   class="form-input"></label>
-    <button type="submit" class="btn btn-primary">Filtrar</button>
-  </form>
+  <a href="{% url 'reports:dashboard' %}" class="btn-lc-outline">&#8592; Volver</a>
 </div>
 
 {% if rows %}
 <div class="table-wrapper">
-  <table class="data-table">
-    <thead>
-      <tr><th>Cliente</th><th>Total tareas</th><th>Validadas</th><th>Pendientes</th><th>Por revisar</th><th>Cumplimiento</th></tr>
-    </thead>
+  <table class="table table-lc table-hover">
+    <thead><tr>
+      <th>Cliente</th><th>Total tareas</th><th>Validadas</th><th>Pendientes</th><th>Canceladas</th><th>Cumplimiento</th>
+    </tr></thead>
     <tbody>
       {% for row in rows %}
       <tr>
-        <td class="td-product">{{ row.client.name }}</td>
-        <td class="td-num">{{ row.total }}</td>
-        <td class="td-num text-success">{{ row.validated }}</td>
-        <td class="td-num {% if row.pending > 0 %}text-warn{% endif %}">{{ row.pending }}</td>
-        <td class="td-num {% if row.in_review > 0 %}text-info{% endif %}">{{ row.in_review }}</td>
+        <td><strong>{{ row.client }}</strong></td>
+        <td>{{ row.total }}</td>
+        <td><span class="badge bg-success">{{ row.validated }}</span></td>
+        <td><span class="badge bg-warning text-dark">{{ row.pending }}</span></td>
+        <td><span class="badge bg-secondary">{{ row.cancelled }}</span></td>
         <td>
-          {% if row.total > 0 %}
-            {% widthratio row.validated row.total 100 as pct %}
-            <div class="progress-bar-wrap">
-              <div class="progress-bar" style="width:{{ pct }}%"></div>
-              <span class="progress-label">{{ pct }}%</span>
-            </div>
-          {% else %}
-            <span class="td-muted">Sin tareas</span>
-          {% endif %}
+          <div class="progress" style="height:8px;background:rgba(255,255,255,0.15);border-radius:4px">
+            <div class="progress-bar bg-success" style="width:{{ row.pct }}%"></div>
+          </div>
+          <small class="opacity-75">{{ row.pct }}%</small>
         </td>
       </tr>
       {% endfor %}
@@ -49,6 +36,9 @@
   </table>
 </div>
 {% else %}
-<div class="empty-state"><p>No hay clientes con tareas en el período seleccionado.</p></div>
+<div class="text-center py-5 opacity-75">
+  <i class="bi bi-inbox fs-1"></i>
+  <p class="mt-2">No hay datos de clientes todavía.</p>
+</div>
 {% endif %}
 {% endblock %}

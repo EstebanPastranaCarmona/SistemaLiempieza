@@ -1,67 +1,44 @@
 {% extends "base.html" %}
 {% block title %}Consumo de Materiales{% endblock %}
 
-{% block content %}
-<div class="page-header">
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h1 class="page-title">Consumo de Materiales</h1>
-    <p class="page-subtitle">Registro de salidas de inventario por tareas</p>
+    <h4 class="mb-1"><i class="bi bi-graph-down-arrow me-2"></i>Consumo de Materiales</h4>
+    <small class="opacity-75">Salidas de inventario por producto</small>
   </div>
-  <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost">← Volver</a>
+  <a href="{% url 'reports:dashboard' %}" class="btn-lc-outline">&#8592; Volver</a>
 </div>
 
-<div class="filter-bar">
-  <form method="get" class="filter-form">
-    <label class="filter-label">Desde <input type="date" name="date_from" value="{{ date_from }}" class="form-input"></label>
-    <label class="filter-label">Hasta  <input type="date" name="date_to"   value="{{ date_to }}"   class="form-input"></label>
-    <label class="filter-label">Cliente
-      <select name="client" class="form-select">
-        <option value="">Todos</option>
-        {% for c in clients %}
-          <option value="{{ c.id }}" {% if client_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <button type="submit" class="btn btn-primary">Filtrar</button>
+<div class="mb-3">
+  <form method="get" class="d-flex flex-wrap gap-3 align-items-end">
+    <label class="text-white opacity-75 mb-0">Desde <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm"></label>
+    <label class="text-white opacity-75 mb-0">Hasta <input type="date" name="date_to"   value="{{ date_to }}"   class="form-control form-control-sm"></label>
+    <button type="submit" class="btn-lc">Filtrar</button>
+    <a href="{% url 'reports:consumption' %}" class="btn-lc-outline">Limpiar</a>
   </form>
 </div>
 
-{% if by_product_list %}
-<h2 class="section-label">Resumen por producto</h2>
+{% if rows %}
 <div class="table-wrapper">
-  <table class="data-table">
-    <thead><tr><th>Producto</th><th>Total consumido</th><th>Unidad</th><th>Movimientos</th></tr></thead>
+  <table class="table table-lc table-hover">
+    <thead><tr><th>Producto</th><th>Unidad</th><th>Total consumido</th><th>Movimientos</th></tr></thead>
     <tbody>
-      {% for name, data in by_product_list %}
+      {% for row in rows %}
       <tr>
-        <td class="td-product">{{ name }}</td>
-        <td class="td-num"><strong>{{ data.total }}</strong></td>
-        <td class="td-muted">{{ data.unit }}</td>
-        <td class="td-num">{{ data.count }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-<h2 class="section-label" style="margin-top:var(--space-8)">Movimientos individuales</h2>
-<div class="table-wrapper">
-  <table class="data-table">
-    <thead><tr><th>Producto</th><th>Cantidad</th><th>Motivo</th><th>Fecha</th><th>Registrado por</th></tr></thead>
-    <tbody>
-      {% for m in movements %}
-      <tr>
-        <td class="td-product">{{ m.lot.product.name }}</td>
-        <td class="td-num">{{ m.quantity }} {{ m.lot.product.unit }}</td>
-        <td class="td-muted">{{ m.reason }}</td>
-        <td class="td-num">{{ m.date|date:"d/m/Y H:i" }}</td>
-        <td>{{ m.created_by.get_full_name|default:m.created_by.username|default:"—" }}</td>
+        <td><strong>{{ row.product__name }}</strong></td>
+        <td class="text-muted">{{ row.product__unit }}</td>
+        <td>{{ row.total|floatformat:2 }}</td>
+        <td>{{ row.count }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 {% else %}
-<div class="empty-state"><p>No hay movimientos de salida en el período seleccionado.</p></div>
+<div class="text-center py-5 opacity-75">
+  <i class="bi bi-inbox fs-1"></i>
+  <p class="mt-2">No hay movimientos de salida en ese período.</p>
+</div>
 {% endif %}
 {% endblock %}

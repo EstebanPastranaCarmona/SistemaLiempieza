@@ -1,72 +1,74 @@
 {% extends "base.html" %}
 {% block title %}Reporte de Tareas{% endblock %}
 
-{% block content %}
-<div class="page-header">
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h1 class="page-title">Reporte de Tareas</h1>
-    <p class="page-subtitle">Historial y estado de tareas programadas</p>
+    <h4 class="mb-1"><i class="bi bi-clipboard2-check-fill me-2"></i>Reporte de Tareas</h4>
+    <small class="opacity-75">Historial y estado de tareas programadas</small>
   </div>
-  <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost">← Volver</a>
+  <a href="{% url 'reports:dashboard' %}" class="btn-lc-outline">&#8592; Volver</a>
 </div>
 
-<div class="status-summary">
-  <div class="status-chip"><span class="dot dot-pending"></span>Pendientes <strong>{{ summary_dict.PENDING|default:0 }}</strong></div>
-  <div class="status-chip"><span class="dot dot-progress"></span>En progreso <strong>{{ summary_dict.IN_PROGRESS|default:0 }}</strong></div>
-  <div class="status-chip"><span class="dot dot-review"></span>Por revisar <strong>{{ summary_dict.PENDING_REVIEW|default:0 }}</strong></div>
-  <div class="status-chip"><span class="dot dot-validated"></span>Validadas <strong>{{ summary_dict.VALIDATED|default:0 }}</strong></div>
+<div class="d-flex flex-wrap gap-3 mb-4">
+  <span class="badge" style="background:rgba(255,255,255,0.15);font-size:.85rem">Pendientes <strong>{{ summary_dict.PENDING|default:0 }}</strong></span>
+  <span class="badge" style="background:rgba(255,255,255,0.15);font-size:.85rem">En progreso <strong>{{ summary_dict.IN_PROGRESS|default:0 }}</strong></span>
+  <span class="badge" style="background:rgba(255,255,255,0.15);font-size:.85rem">Por revisar <strong>{{ summary_dict.PENDING_REVIEW|default:0 }}</strong></span>
+  <span class="badge bg-success" style="font-size:.85rem">Validadas <strong>{{ summary_dict.VALIDATED|default:0 }}</strong></span>
 </div>
 
-<div class="filter-bar">
-  <form method="get" class="filter-form">
-    <label class="filter-label">Desde <input type="date" name="date_from" value="{{ date_from }}" class="form-input"></label>
-    <label class="filter-label">Hasta  <input type="date" name="date_to"   value="{{ date_to }}"   class="form-input"></label>
-    <label class="filter-label">Cliente
-      <select name="client" class="form-select">
+<div class="mb-3">
+  <form method="get" class="d-flex flex-wrap gap-3 align-items-end">
+    <label class="text-white opacity-75 mb-0">Desde <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm"></label>
+    <label class="text-white opacity-75 mb-0">Hasta <input type="date" name="date_to"   value="{{ date_to }}"   class="form-control form-control-sm"></label>
+    <label class="text-white opacity-75 mb-0">Cliente
+      <select name="client" class="form-select form-select-sm">
         <option value="">Todos</option>
-        {% for c in clients %}
-          <option value="{{ c.id }}" {% if client_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
-        {% endfor %}
+        {% for c in clients %}<option value="{{ c.pk }}" {% if c.pk|stringformat:'s' == client_id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
       </select>
     </label>
-    <label class="filter-label">Estado
-      <select name="status" class="form-select">
+    <label class="text-white opacity-75 mb-0">Estado
+      <select name="status" class="form-select form-select-sm">
         <option value="">Todos</option>
-        {% for val, label in status_choices %}
-          <option value="{{ val }}" {% if status_f == val %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
+        <option value="PENDING"        {% if status_filter == 'PENDING' %}selected{% endif %}>Pendiente</option>
+        <option value="IN_PROGRESS"    {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>En progreso</option>
+        <option value="PENDING_REVIEW" {% if status_filter == 'PENDING_REVIEW' %}selected{% endif %}>Por revisar</option>
+        <option value="VALIDATED"      {% if status_filter == 'VALIDATED' %}selected{% endif %}>Validada</option>
+        <option value="CANCELLED"      {% if status_filter == 'CANCELLED' %}selected{% endif %}>Cancelada</option>
       </select>
     </label>
-    <button type="submit" class="btn btn-primary">Filtrar</button>
+    <button type="submit" class="btn-lc">Filtrar</button>
+    <a href="{% url 'reports:tasks' %}" class="btn-lc-outline">Limpiar</a>
   </form>
 </div>
 
 {% if tasks %}
 <div class="table-wrapper">
-  <table class="data-table">
-    <thead>
-      <tr><th>Tarea</th><th>Cliente</th><th>Ubicación</th><th>Fecha</th><th>Asignado a</th><th>Estado</th></tr>
-    </thead>
+  <table class="table table-lc table-hover">
+    <thead><tr><th>Tarea</th><th>Cliente</th><th>Programada</th><th>Estado</th><th>Asignado</th></tr></thead>
     <tbody>
-      {% for task in tasks %}
+      {% for t in tasks %}
       <tr>
-        <td><a href="{% url 'tasks:task_detail' task.pk %}" class="link">{{ task.title }}</a></td>
-        <td class="td-muted">{{ task.client.name }}</td>
-        <td class="td-muted">{{ task.location.name|default:"—" }}</td>
-        <td class="td-num">{{ task.scheduled_date }}</td>
-        <td>{{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"—" }}</td>
+        <td><strong>{{ t.title }}</strong></td>
+        <td>{{ t.client.name }}</td>
+        <td>{{ t.scheduled_date }}</td>
         <td>
-          {% if task.status == 'PENDING' %}<span class="badge badge-pending">Pendiente</span>
-          {% elif task.status == 'IN_PROGRESS' %}<span class="badge badge-progress">En progreso</span>
-          {% elif task.status == 'PENDING_REVIEW' %}<span class="badge badge-review">Por revisar</span>
-          {% elif task.status == 'VALIDATED' %}<span class="badge badge-ok">Validada</span>{% endif %}
+          {% if t.status == 'VALIDATED' %}<span class="badge bg-success">Validada</span>
+          {% elif t.status == 'IN_PROGRESS' %}<span class="badge bg-primary">En progreso</span>
+          {% elif t.status == 'PENDING_REVIEW' %}<span class="badge bg-info text-dark">Por revisar</span>
+          {% elif t.status == 'CANCELLED' %}<span class="badge bg-secondary">Cancelada</span>
+          {% else %}<span class="badge bg-warning text-dark">Pendiente</span>{% endif %}
         </td>
+        <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username|default:'-' }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 {% else %}
-<div class="empty-state"><p>No hay tareas para el rango y filtros seleccionados.</p></div>
+<div class="text-center py-5 opacity-75">
+  <i class="bi bi-inbox fs-1"></i>
+  <p class="mt-2">No hay tareas con esos filtros.</p>
+</div>
 {% endif %}
 {% endblock %}

@@ -1,83 +1,76 @@
 {% extends "base.html" %}
 {% block title %}Alertas de Inventario{% endblock %}
 
-{% block content %}
-<div class="page-header">
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h1 class="page-title">Alertas de Inventario</h1>
-    <p class="page-subtitle">Productos con stock bajo y lotes próximos a vencer</p>
+    <h4 class="mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Alertas de Inventario</h4>
+    <small class="opacity-75">Productos con stock bajo y lotes por vencer o vencidos</small>
   </div>
-  <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost">← Volver</a>
+  <a href="{% url 'reports:dashboard' %}" class="btn-lc-outline">&#8592; Volver</a>
 </div>
 
 {% if low_products %}
-<div class="alert-section">
-  <h2 class="section-label section-label--warn">Productos con stock bajo ({{ low_products|length }})</h2>
-  <div class="table-wrapper">
-    <table class="data-table">
-      <thead><tr><th>Producto</th><th>Stock actual</th><th>Stock mínimo</th></tr></thead>
-      <tbody>
-        {% for p in low_products %}
-        <tr class="row-warn">
-          <td class="td-product">{{ p.name }}</td>
-          <td class="td-num text-error">{{ p.get_total_stock }} {{ p.unit }}</td>
-          <td class="td-num muted">{{ p.min_stock }} {{ p.unit }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-{% else %}
-<div class="alert-section alert-section--ok">
-  <p>✓ Todos los productos tienen stock suficiente.</p>
+<h5 class="text-warning mb-3"><i class="bi bi-exclamation-circle me-1"></i>Stock bajo ({{ low_products|length }} productos)</h5>
+<div class="table-wrapper mb-4">
+  <table class="table table-lc table-hover">
+    <thead><tr><th>Producto</th><th>Stock actual</th><th>Stock mínimo</th><th>Unidad</th></tr></thead>
+    <tbody>
+      {% for p in low_products %}
+      <tr>
+        <td><strong>{{ p.name }}</strong></td>
+        <td><span class="badge bg-warning text-dark">{{ p.current_stock }}</span></td>
+        <td>{{ p.min_stock }}</td>
+        <td>{{ p.unit }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endif %}
 
 {% if expiring_lots %}
-<div class="alert-section" style="margin-top:var(--space-8)">
-  <h2 class="section-label section-label--warn">Lotes que vencen en los próximos 7 días ({{ expiring_lots|length }})</h2>
-  <div class="table-wrapper">
-    <table class="data-table">
-      <thead><tr><th>Producto</th><th>Lote #</th><th>Cantidad</th><th>Vence el</th><th>Días restantes</th></tr></thead>
-      <tbody>
-        {% for lot in expiring_lots %}
-        <tr class="row-warn">
-          <td class="td-product">{{ lot.product.name }}</td>
-          <td class="td-num muted">#{{ lot.id }}</td>
-          <td class="td-num">{{ lot.quantity }} {{ lot.product.unit }}</td>
-          <td class="td-num">{{ lot.expiration_date }}</td>
-          <td class="td-num text-warn">{{ lot.days_until_expiration }} días</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<h5 class="text-warning mb-3"><i class="bi bi-clock me-1"></i>Vencen en 7 días ({{ expiring_lots|length }} lotes)</h5>
+<div class="table-wrapper mb-4">
+  <table class="table table-lc table-hover">
+    <thead><tr><th>Lote</th><th>Producto</th><th>Cantidad</th><th>Vence</th></tr></thead>
+    <tbody>
+      {% for lot in expiring_lots %}
+      <tr>
+        <td><strong>{{ lot.lot_number }}</strong></td>
+        <td>{{ lot.product.name }}</td>
+        <td>{{ lot.quantity }} {{ lot.product.unit }}</td>
+        <td><span class="badge bg-warning text-dark">{{ lot.expiration_date }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endif %}
 
 {% if expired_lots %}
-<div class="alert-section" style="margin-top:var(--space-8)">
-  <h2 class="section-label section-label--error">Lotes vencidos activos ({{ expired_lots|length }})</h2>
-  <div class="table-wrapper">
-    <table class="data-table">
-      <thead><tr><th>Producto</th><th>Lote #</th><th>Cantidad</th><th>Venció el</th></tr></thead>
-      <tbody>
-        {% for lot in expired_lots %}
-        <tr class="row-error">
-          <td class="td-product">{{ lot.product.name }}</td>
-          <td class="td-num muted">#{{ lot.id }}</td>
-          <td class="td-num">{{ lot.quantity }} {{ lot.product.unit }}</td>
-          <td class="td-num text-error">{{ lot.expiration_date }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<h5 class="text-danger mb-3"><i class="bi bi-x-circle me-1"></i>Vencidos ({{ expired_lots|length }} lotes)</h5>
+<div class="table-wrapper">
+  <table class="table table-lc table-hover">
+    <thead><tr><th>Lote</th><th>Producto</th><th>Cantidad</th><th>Venció</th></tr></thead>
+    <tbody>
+      {% for lot in expired_lots %}
+      <tr>
+        <td><strong>{{ lot.lot_number }}</strong></td>
+        <td>{{ lot.product.name }}</td>
+        <td>{{ lot.quantity }} {{ lot.product.unit }}</td>
+        <td><span class="badge bg-danger">{{ lot.expiration_date }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
-{% else %}
-<div class="alert-section alert-section--ok" style="margin-top:var(--space-8)">
-  <p>✓ No hay lotes vencidos activos.</p>
+{% endif %}
+
+{% if not low_products and not expiring_lots and not expired_lots %}
+<div class="text-center py-5 opacity-75">
+  <i class="bi bi-check-circle fs-1 text-success"></i>
+  <p class="mt-2">Todo en orden. Sin alertas de inventario.</p>
 </div>
 {% endif %}
 {% endblock %}
