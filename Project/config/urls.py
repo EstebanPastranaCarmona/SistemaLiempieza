@@ -9,6 +9,7 @@ urlpatterns = [
     path('clientes/', include('app.clients.urls')),
     path('inventario/', include('app.inventory.urls')),
     path('tareas/', include('app.tasks.urls')),
+    path('reportes/', include('app.reports.urls', namespace='reports')),
 ]
 
 # Servir archivos media en desarrollo (evidencias, fotos, etc.)
