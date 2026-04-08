@@ -17,7 +17,6 @@
     </div>
 </div>
 
-{# Filtros en línea con labels claros #}
 <form method="GET" class="card form-card p-3 mb-3">
     <div class="row g-2 align-items-end">
         <div class="col-md-3">
@@ -57,39 +56,42 @@
     </div>
 </form>
 
-<div class="card form-card">
-    <div class="card-body p-0">
-        <table class="table table-lc mb-0">
-            <thead>
-                <tr>
-                    <th class="ps-3">Título</th>
-                    <th>Cliente</th>
-                    <th>Asignado a</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for t in tasks %}
-                <tr>
-                    <td class="ps-3">
-                        <a href="{% url 'tasks:task_detail' t.pk %}" class="fw-semibold text-decoration-none">{{ t.title }}</a>
-                    </td>
-                    <td>{{ t.client.name }}</td>
-                    <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username|default:"—" }}</td>
-                    <td>{{ t.scheduled_date }}</td>
-                    <td>
-                        {% if t.status == 'PENDING' %}<span class="badge bg-secondary">Pendiente</span>
-                        {% elif t.status == 'IN_PROGRESS' %}<span class="badge bg-warning text-dark">En progreso</span>
-                        {% elif t.status == 'PENDING_REVIEW' %}<span class="badge bg-info text-dark">En revisión</span>
-                        {% elif t.status == 'VALIDATED' %}<span class="badge bg-success">Validada</span>{% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5" class="text-center py-4" style="background:white;color:#888;">Sin tareas para los filtros seleccionados.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="table-wrapper">
+    <table class="table table-lc table-hover mb-0">
+        <thead>
+            <tr>
+                <th><i class="bi bi-card-text me-1"></i>Título</th>
+                <th><i class="bi bi-building me-1"></i>Cliente</th>
+                <th><i class="bi bi-person me-1"></i>Asignado a</th>
+                <th><i class="bi bi-calendar me-1"></i>Fecha</th>
+                <th><i class="bi bi-circle-half me-1"></i>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tasks %}
+            <tr>
+                <td>
+                    <a href="{% url 'tasks:task_detail' t.pk %}" class="fw-semibold text-decoration-none">{{ t.title }}</a>
+                </td>
+                <td>{{ t.client.name }}</td>
+                <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username|default:"—" }}</td>
+                <td>{{ t.scheduled_date }}</td>
+                <td>
+                    {% if t.status == 'PENDING' %}<span class="badge bg-secondary">Pendiente</span>
+                    {% elif t.status == 'IN_PROGRESS' %}<span class="badge bg-warning text-dark">En progreso</span>
+                    {% elif t.status == 'PENDING_REVIEW' %}<span class="badge bg-info text-dark">En revisión</span>
+                    {% elif t.status == 'VALIDATED' %}<span class="badge bg-success">Validada</span>{% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center py-5" style="background:white;color:#888;">
+                    <i class="bi bi-clipboard2-x fs-3 d-block mb-2"></i>
+                    Sin tareas para los filtros seleccionados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

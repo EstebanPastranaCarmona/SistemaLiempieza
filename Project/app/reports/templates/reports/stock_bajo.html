@@ -19,50 +19,61 @@
 
 {% if low_stock %}
 <h6 class="mb-2"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Productos con stock bajo ({{ low_stock|length }})</h6>
-<div class="card form-card mb-4">
-    <div class="card-body p-0">
-        <table class="table table-lc mb-0">
-            <thead><tr><th class="ps-3">Producto</th><th>Stock actual</th><th>Mínimo</th><th>Proveedor</th></tr></thead>
-            <tbody>
-                {% for p in low_stock %}
-                <tr class="table-warning">
-                    <td class="ps-3 fw-semibold">{{ p.name }}</td>
-                    <td class="text-danger fw-bold">{{ p.get_total_stock }} {{ p.unit }}</td>
-                    <td>{{ p.min_stock }} {{ p.unit }}</td>
-                    <td class="text-muted">{{ p.supplier|default:"—" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="table-wrapper mb-4">
+    <table class="table table-lc table-hover mb-0">
+        <thead>
+            <tr>
+                <th><i class="bi bi-tag me-1"></i>Producto</th>
+                <th><i class="bi bi-stack me-1"></i>Stock actual</th>
+                <th><i class="bi bi-arrow-down-circle me-1"></i>Mínimo</th>
+                <th><i class="bi bi-building me-1"></i>Proveedor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in low_stock %}
+            <tr class="table-warning">
+                <td class="fw-semibold">{{ p.name }}</td>
+                <td class="text-danger fw-bold">{{ p.get_total_stock }} {{ p.unit }}</td>
+                <td>{{ p.min_stock }} {{ p.unit }}</td>
+                <td class="text-muted">{{ p.supplier|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endif %}
 
 {% if expiring_lots %}
 <h6 class="mb-2"><i class="bi bi-clock-history text-warning me-1"></i>Lotes por vencer en los próximos 30 días ({{ expiring_lots|length }})</h6>
-<div class="card form-card">
-    <div class="card-body p-0">
-        <table class="table table-lc mb-0">
-            <thead><tr><th class="ps-3">Producto</th><th>Lote #</th><th>Cantidad</th><th>Vencimiento</th><th>Estado</th></tr></thead>
-            <tbody>
-                {% for lot in expiring_lots %}
-                <tr {% if lot.expiration_date < today %}class="table-danger"{% else %}class="table-warning"{% endif %}>
-                    <td class="ps-3 fw-semibold">{{ lot.product.name }}</td>
-                    <td class="text-muted">#{{ lot.pk }}</td>
-                    <td>{{ lot.quantity }} {{ lot.product.unit }}</td>
-                    <td>{{ lot.expiration_date }}</td>
-                    <td>
-                        {% if lot.expiration_date < today %}
-                            <span class="badge bg-danger">VENCIDO</span>
-                        {% else %}
-                            <span class="badge bg-warning text-dark">Vence en {{ lot.days_until_expiration }} días</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="table-wrapper">
+    <table class="table table-lc table-hover mb-0">
+        <thead>
+            <tr>
+                <th><i class="bi bi-tag me-1"></i>Producto</th>
+                <th><i class="bi bi-box me-1"></i>Lote #</th>
+                <th><i class="bi bi-stack me-1"></i>Cantidad</th>
+                <th><i class="bi bi-calendar-x me-1"></i>Vencimiento</th>
+                <th><i class="bi bi-circle-half me-1"></i>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lot in expiring_lots %}
+            <tr {% if lot.expiration_date < today %}class="table-danger"{% else %}class="table-warning"{% endif %}>
+                <td class="fw-semibold">{{ lot.product.name }}</td>
+                <td class="text-muted">#{{ lot.pk }}</td>
+                <td>{{ lot.quantity }} {{ lot.product.unit }}</td>
+                <td>{{ lot.expiration_date }}</td>
+                <td>
+                    {% if lot.expiration_date < today %}
+                        <span class="badge bg-danger">VENCIDO</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Vence en {{ lot.days_until_expiration }} días</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endif %}
 
