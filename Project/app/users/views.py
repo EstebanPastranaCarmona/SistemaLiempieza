@@ -86,6 +86,12 @@ def dashboard(request):
         ).select_related('review')
         context['rejected_tasks'] = rejected_tasks
 
+        # Tareas propias del operario
+        my_tasks = Task.objects.filter(
+            assigned_to=request.user
+        ).exclude(status=Task.VALIDATED).order_by('scheduled_date', 'scheduled_time')
+        context['my_tasks'] = my_tasks
+
     return render(request, 'users/dashboard.html', context)
 
 
@@ -104,9 +110,9 @@ def user_create(request):
         user = form.save(commit=False)
         user.set_password(form.cleaned_data['password'])
         user.save()
-        group_name = form.cleaned_data.get('role')
-        if group_name:
-            group = Group.objects.get(name=group_name)
+        # 'rol' devuelve directamente el objeto Group (ModelChoiceField)
+        group = form.cleaned_data.get('rol')
+        if group:
             user.groups.add(group)
         messages.success(request, f'Usuario {user.username} creado correctamente.')
         return redirect('users:user_list')
@@ -117,14 +123,16 @@ def user_create(request):
 @admin_required
 def user_edit(request, pk):
     user_obj = User.objects.get(pk=pk)
-    form     = UserEditForm(request.POST or None, instance=user_obj)
+    # Precarga el grupo actual en el campo 'rol'
+    current_group = user_obj.groups.first()
+    initial = {'rol': current_group} if current_group else {}
+    form = UserEditForm(request.POST or None, instance=user_obj, initial=initial)
     if form.is_valid():
         user_obj = form.save()
-        group_name = form.cleaned_data.get('role')
-        if group_name:
-            user_obj.groups.clear()
-            group = Group.objects.get(name=group_name)
-            user_obj.groups.add(group)
+        # 'rol' devuelve directamente el objeto Group (ModelChoiceField)
+        group = form.cleaned_data.get('rol')
+        if group:
+            user_obj.groups.set([group])  # reemplaza cualquier grupo anterior
         messages.success(request, 'Usuario actualizado.')
         return redirect('users:user_list')
     return render(request, 'users/user_form.html', {'form': form, 'action': 'Editar', 'obj': user_obj})
