@@ -3,10 +3,9 @@ from django.db import models
 
 class Client(models.Model):
     name         = models.CharField(max_length=100, verbose_name='Nombre')
-    contact_name = models.CharField(max_length=100, verbose_name='Contacto')          # obligatorio
-    phone        = models.CharField(max_length=20, blank=True, verbose_name='Teléfono')  # opcional
-    email        = models.EmailField(verbose_name='Correo')                             # obligatorio
-    address      = models.CharField(max_length=200, verbose_name='Dirección principal') # obligatorio
+    contact_name = models.CharField(max_length=100, verbose_name='Contacto')
+    phone        = models.CharField(max_length=20, blank=True, verbose_name='Teléfono')
+    email        = models.EmailField(verbose_name='Correo')
     is_active    = models.BooleanField(default=True, verbose_name='Activo')
     created_at   = models.DateTimeField(auto_now_add=True)
 

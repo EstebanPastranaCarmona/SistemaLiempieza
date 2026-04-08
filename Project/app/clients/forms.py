@@ -5,13 +5,12 @@ from .models import Client, ClientLocation
 class ClientForm(forms.ModelForm):
     class Meta:
         model  = Client
-        fields = ['name', 'contact_name', 'phone', 'email', 'address']
+        fields = ['name', 'contact_name', 'phone', 'email']
         labels = {
             'name':         'Nombre de la empresa',
             'contact_name': 'Persona de contacto',
             'phone':        'Teléfono (opcional)',
             'email':        'Correo electrónico',
-            'address':      'Dirección principal',
         }
         widgets = {
             'name':         forms.TextInput(attrs={'class': 'form-control', 'required': True}),
@@ -19,11 +18,9 @@ class ClientForm(forms.ModelForm):
             'phone':        forms.TextInput(attrs={
                                 'class': 'form-control',
                                 'placeholder': 'ej: 88001122 (opcional)',
-                                'pattern': r'[0-9\+\-\s\(\)]{7,20}',
                                 'maxlength': '20',
                             }),
             'email':        forms.EmailInput(attrs={'class': 'form-control', 'required': True}),
-            'address':      forms.TextInput(attrs={'class': 'form-control', 'required': True}),
         }
 
     def clean_name(self):
@@ -49,16 +46,10 @@ class ClientForm(forms.ModelForm):
             raise forms.ValidationError('El correo electrónico es obligatorio.')
         return val
 
-    def clean_address(self):
-        val = self.cleaned_data.get('address', '').strip()
-        if not val:
-            raise forms.ValidationError('La dirección es obligatoria.')
-        return val
-
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
         if not phone:
-            return phone   # opcional, no falla si está vacío
+            return phone
         import re
         digits = re.sub(r'[^0-9]', '', phone)
         if len(digits) < 7 or len(digits) > 15:
@@ -69,17 +60,16 @@ class ClientForm(forms.ModelForm):
 
 
 class ClientLocationForm(forms.ModelForm):
+    """Formulario de ubicación — el campo client se asigna en la vista, no se muestra al usuario."""
     class Meta:
         model  = ClientLocation
-        fields = ['client', 'name', 'address', 'notes']
+        fields = ['name', 'address', 'notes']
         labels = {
-            'client':  'Cliente',
             'name':    'Nombre de la ubicación',
             'address': 'Dirección',
             'notes':   'Notas adicionales (opcional)',
         }
         widgets = {
-            'client':  forms.Select(attrs={'class': 'form-select'}),
             'name':    forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
             'notes':   forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),

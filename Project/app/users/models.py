@@ -16,12 +16,15 @@ class User( AbstractUser ):
         verbose_name_plural = 'Usuarios'
         unique_together = ['username', 'email']
 
+    @property
     def is_admin(self):
         return self.groups.filter(name='Administrador').exists()
 
+    @property
     def is_supervisor(self):
         return self.groups.filter(name='Supervisor').exists()
 
+    @property
     def is_operario(self):
         return self.groups.filter(name='Operario').exists()
 
@@ -31,4 +34,3 @@ class User( AbstractUser ):
     def has_permission(self, code: str) -> bool:
         return self.user_permissions.filter(codename=code).exists() or \
                self.groups.filter(permissions__codename=code).exists()
-

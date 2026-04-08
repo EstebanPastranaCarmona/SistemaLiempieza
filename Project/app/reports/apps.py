@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class TasksConfig(AppConfig):
+class ReportsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'app.tasks'
-    verbose_name = 'Tareas'
+    name = 'app.reports'
+    verbose_name = 'Reportes'

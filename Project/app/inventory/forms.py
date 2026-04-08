@@ -5,18 +5,22 @@ from .models import Product, Lot, Movement
 class ProductForm(forms.ModelForm):
     class Meta:
         model  = Product
-        fields = ['name', 'product_type', 'unit', 'min_stock']
+        fields = ['name', 'product_type', 'unit', 'min_stock', 'supplier', 'warehouse_location']
         labels = {
-            'name':         'Nombre del producto',
-            'product_type': 'Tipo / Categoría',
-            'unit':         'Unidad de medida',
-            'min_stock':    'Stock mínimo',
+            'name':               'Nombre del producto',
+            'product_type':       'Tipo / Categoría',
+            'unit':               'Unidad de medida',
+            'min_stock':          'Stock mínimo',
+            'supplier':           'Proveedor',
+            'warehouse_location': 'Ubicación en almacén',
         }
         widgets = {
-            'name':         forms.TextInput(attrs={'class': 'form-control'}),
-            'product_type': forms.TextInput(attrs={'class': 'form-control'}),
-            'unit':         forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: unidades, cajas, bolsas'}),
-            'min_stock':    forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '1'}),
+            'name':               forms.TextInput(attrs={'class': 'form-control'}),
+            'product_type':       forms.TextInput(attrs={'class': 'form-control'}),
+            'unit':               forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: unidades, cajas, bolsas'}),
+            'min_stock':          forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '1'}),
+            'supplier':           forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: Distribuidora XYZ (opcional)'}),
+            'warehouse_location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: Estante A-3 (opcional)'}),
         }
 
     def clean_name(self):
@@ -44,6 +48,11 @@ class LotForm(forms.ModelForm):
             'expiration_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Solo mostrar productos activos (no archivados)
+        self.fields['product'].queryset = Product.objects.filter(is_active=True).order_by('name')
+
 
 class MovementForm(forms.ModelForm):
     class Meta:
@@ -61,3 +70,11 @@ class MovementForm(forms.ModelForm):
             'quantity':      forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'step': '1'}),
             'reason':        forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Solo mostrar lotes activos (cuyo producto tampoco esté archivado)
+        self.fields['lot'].queryset = Lot.objects.filter(
+            is_active=True,
+            product__is_active=True
+        ).select_related('product').order_by('product__name', 'expiration_date')

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import Client, ClientLocation
 from .forms import ClientForm, ClientLocationForm
@@ -61,17 +62,26 @@ def client_toggle_active(request, pk):
 @admin_required
 def location_list(request, client_pk):
     client = get_object_or_404(Client, pk=client_pk)
-    locations = client.locations.filter(is_active=True)
+    locations = client.locations.all()
     return render(request, 'clients/location_list.html', {'client': client, 'locations': locations})
+
+
+@login_required
+def locations_json(request, client_pk):
+    """Endpoint AJAX: devuelve las ubicaciones activas de un cliente en JSON."""
+    locations = ClientLocation.objects.filter(client_id=client_pk, is_active=True).values('id', 'name')
+    return JsonResponse(list(locations), safe=False)
 
 
 @login_required
 @admin_required
 def location_create(request, client_pk):
     client = get_object_or_404(Client, pk=client_pk)
-    form = ClientLocationForm(request.POST or None, initial={'client': client})
+    form = ClientLocationForm(request.POST or None)
     if form.is_valid():
-        form.save()
+        location = form.save(commit=False)
+        location.client = client          # asignamos el cliente desde la URL
+        location.save()
         messages.success(request, 'Ubicación agregada.')
         return redirect('clients:location_list', client_pk=client.pk)
     return render(request, 'clients/location_form.html', {'form': form, 'action': 'Agregar', 'client': client})
@@ -83,7 +93,9 @@ def location_edit(request, pk):
     location = get_object_or_404(ClientLocation, pk=pk)
     form = ClientLocationForm(request.POST or None, instance=location)
     if form.is_valid():
-        form.save()
+        loc = form.save(commit=False)
+        loc.client = location.client      # protegemos que no cambie de cliente
+        loc.save()
         messages.success(request, 'Ubicación actualizada.')
         return redirect('clients:location_list', client_pk=location.client.pk)
     return render(request, 'clients/location_form.html', {'form': form, 'action': 'Editar', 'client': location.client})

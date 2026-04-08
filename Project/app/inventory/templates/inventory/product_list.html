@@ -4,76 +4,73 @@
 {% block body %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h4><i class="bi bi-box-seam-fill me-2"></i>Productos</h4>
-        <small class="opacity-75">Catálogo de insumos — al archivar un producto se archivan todos sus lotes</small>
+        <h4><i class="bi bi-boxes me-2"></i>Productos</h4>
+        <small class="opacity-75">Catálogo de productos de limpieza</small>
     </div>
     <a href="{% url 'inventory:lot_list' %}" class="btn btn-sm btn-outline-light">
         <i class="bi bi-arrow-left me-1"></i>Volver a Lotes
     </a>
 </div>
 
+{% if user.is_admin %}
 <div class="d-flex mb-3 justify-content-end">
     <a href="{% url 'inventory:product_create' %}" class="btn-lc">
-        <i class="bi bi-plus-lg me-1"></i>Nuevo Producto
+        <i class="bi bi-plus-lg me-1"></i>Nuevo producto
     </a>
 </div>
+{% endif %}
 
 <div class="table-wrapper">
     <table class="table table-lc table-hover mb-0">
         <thead>
             <tr>
-                <th class="ps-3"><i class="bi bi-box me-1"></i>Producto</th>
-                <th><i class="bi bi-tag me-1"></i>Tipo</th>
+                <th><i class="bi bi-tag me-1"></i>Nombre</th>
+                <th><i class="bi bi-grid me-1"></i>Tipo</th>
                 <th><i class="bi bi-rulers me-1"></i>Unidad</th>
-                <th><i class="bi bi-stack me-1"></i>Stock actual</th>
-                <th><i class="bi bi-exclamation-triangle me-1"></i>Stock mín.</th>
-                <th><i class="bi bi-layers me-1"></i>Lotes activos</th>
-                <th><i class="bi bi-circle-fill me-1"></i>Estado</th>
-                <th>Acciones</th>
+                <th><i class="bi bi-stack me-1"></i>Stock total</th>
+                <th><i class="bi bi-arrow-down-circle me-1"></i>Mínimo</th>
+                <th><i class="bi bi-building me-1"></i>Proveedor</th>
+                <th><i class="bi bi-geo-alt me-1"></i>Ubicación almacén</th>
+                {% if user.is_admin %}
+                <th class="text-end"><i class="bi bi-gear me-1"></i>Acciones</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
-            {% for p in products %}
-            <tr>
-                <td class="ps-3 fw-semibold">{{ p.name }}</td>
-                <td>{{ p.product_type }}</td>
-                <td>{{ p.unit }}</td>
-                <td>
-                    <span class="fw-bold {% if p.id in low_stock_ids %}text-danger{% endif %}">
-                        {{ p.get_total_stock }}
-                    </span>
-                </td>
-                <td>{{ p.min_stock }}</td>
-                <td>
-                    <span class="badge bg-secondary">{{ p.lots.count }}</span>
-                </td>
-                <td>
-                    {% if p.id in low_stock_ids %}
-                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Stock bajo</span>
-                    {% else %}
-                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>OK</span>
+            {% for product in products %}
+            <tr {% if product.id in low_stock_ids %}class="table-warning"{% endif %}>
+                <td class="fw-semibold">
+                    {{ product.name }}
+                    {% if product.id in low_stock_ids %}
+                    <span class="badge bg-danger ms-1"><i class="bi bi-exclamation-triangle-fill"></i> Stock bajo</span>
                     {% endif %}
                 </td>
-                <td>
-                    <div class="d-flex gap-1">
-                        <a href="{% url 'inventory:product_edit' p.pk %}" class="btn btn-sm btn-lc-primary">
-                            <i class="bi bi-pencil-fill"></i>
-                        </a>
-                        <form method="POST" action="{% url 'inventory:product_toggle' p.pk %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger"
-                                    onclick="return confirm('¿Archivar el producto &quot;{{ p.name }}&quot;?\nEsto también archivará todos sus lotes activos.')">
-                                <i class="bi bi-archive-fill"></i>
-                            </button>
-                        </form>
-                    </div>
+                <td>{{ product.product_type }}</td>
+                <td>{{ product.unit }}</td>
+                <td>{{ product.get_total_stock }}</td>
+                <td>{{ product.min_stock }}</td>
+                <td class="text-muted">{{ product.supplier|default:"—" }}</td>
+                <td class="text-muted">{{ product.warehouse_location|default:"—" }}</td>
+                {% if user.is_admin %}
+                <td class="text-end">
+                    <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-sm btn-outline-primary me-1">
+                        <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    <form method="POST" action="{% url 'inventory:product_toggle' product.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('¿Archivar producto y todos sus lotes activos?')">
+                            <i class="bi bi-archive-fill"></i>
+                        </button>
+                    </form>
                 </td>
+                {% endif %}
             </tr>
             {% empty %}
             <tr>
                 <td colspan="8" class="text-center py-5" style="background:white; color:#888;">
-                    <i class="bi bi-box-seam fs-3 d-block mb-2"></i>
-                    No hay productos registrados.
+                    <i class="bi bi-boxes fs-3 d-block mb-2"></i>
+                    No hay productos activos.
                 </td>
             </tr>
             {% endfor %}
