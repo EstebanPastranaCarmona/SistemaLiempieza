@@ -13,23 +13,23 @@
 </div>
 
 <!-- Filtros -->
-<form method="get" class="d-flex gap-2 mb-3 flex-wrap">
-    <select name="status" class="form-select form-select-sm" style="max-width:200px;">
+<form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm" style="max-width:160px;">
+    <input type="date" name="date_to"   value="{{ date_to }}"   class="form-control form-control-sm" style="max-width:160px;">
+    <select name="status" class="form-select form-select-sm" style="max-width:190px;">
         <option value="">Todos los estados</option>
-        <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>Pendiente</option>
-        <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>En progreso</option>
-        <option value="PENDING_REVIEW" {% if request.GET.status == 'PENDING_REVIEW' %}selected{% endif %}>Por revisar</option>
-        <option value="VALIDATED" {% if request.GET.status == 'VALIDATED' %}selected{% endif %}>Validada</option>
-        <option value="CANCELLED" {% if request.GET.status == 'CANCELLED' %}selected{% endif %}>Cancelada</option>
-    </select>
-    <select name="client" class="form-select form-select-sm" style="max-width:200px;">
-        <option value="">Todos los clientes</option>
-        {% for c in clients %}
-        <option value="{{ c.pk }}" {% if request.GET.client == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status_f == val %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
     </select>
-    <button type="submit" class="btn btn-sm btn-lc-primary"><i class="bi bi-funnel me-1"></i>Filtrar</button>
-    <a href="{% url 'reports:tasks' %}" class="btn btn-sm btn-outline-light">Limpiar</a>
+    <select name="client" class="form-select form-select-sm" style="max-width:190px;">
+        <option value="">Todos los clientes</option>
+        {% for c in clients %}
+        <option value="{{ c.pk }}" {% if client_id == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn-lc"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+    <a href="{% url 'reports:tasks' %}" class="btn-lc-outline">Limpiar</a>
 </form>
 
 <div class="table-wrapper">
@@ -37,20 +37,20 @@
         <thead>
             <tr>
                 <th class="ps-3"><i class="bi bi-hash me-1"></i>#</th>
+                <th><i class="bi bi-card-heading me-1"></i>Título</th>
                 <th><i class="bi bi-building me-1"></i>Cliente</th>
-                <th><i class="bi bi-calendar me-1"></i>Fecha prog.</th>
-                <th><i class="bi bi-calendar-check me-1"></i>Fecha fin</th>
+                <th><i class="bi bi-calendar me-1"></i>Fecha programada</th>
                 <th><i class="bi bi-circle-fill me-1"></i>Estado</th>
-                <th><i class="bi bi-person me-1"></i>Operario</th>
+                <th><i class="bi bi-person me-1"></i>Asignado a</th>
             </tr>
         </thead>
         <tbody>
             {% for t in tasks %}
             <tr>
-                <td class="ps-3">{{ t.pk }}</td>
+                <td class="ps-3 text-muted">{{ t.pk }}</td>
+                <td class="fw-semibold">{{ t.title }}</td>
                 <td>{{ t.client.name }}</td>
-                <td>{{ t.scheduled_date|date:"d/m/Y" }}</td>
-                <td>{{ t.completion_date|date:"d/m/Y"|default:"—" }}</td>
+                <td>{{ t.scheduled_date|date:"d/m/Y" }}{% if t.scheduled_time %} {{ t.scheduled_time|time:"H:i" }}{% endif %}</td>
                 <td>
                     {% if t.status == 'VALIDATED' %}
                         <span class="badge bg-success">Validada</span>
@@ -58,13 +58,14 @@
                         <span class="badge bg-primary">En progreso</span>
                     {% elif t.status == 'PENDING_REVIEW' %}
                         <span class="badge bg-info text-dark">Por revisar</span>
-                    {% elif t.status == 'CANCELLED' %}
-                        <span class="badge bg-secondary">Cancelada</span>
                     {% else %}
                         <span class="badge bg-warning text-dark">Pendiente</span>
                     {% endif %}
+                    {% if t.is_overdue %}
+                        <span class="badge bg-danger ms-1">Vencida</span>
+                    {% endif %}
                 </td>
-                <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username }}</td>
+                <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username|default:"—" }}</td>
             </tr>
             {% empty %}
             <tr>
