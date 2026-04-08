@@ -225,8 +225,15 @@ def task_material_delete(request, pk):
         messages.error(request, 'No se pueden eliminar materiales de una tarea ya validada.')
         return redirect('tasks:task_detail', pk=task_pk)
 
-    lot        = material.lot
-    devolucion = material.surplus()
+    lot = material.lot
+
+    # Si ya se reportó uso real, devolvemos solo el sobrante (lo que no se usó).
+    # Si nunca se reportó uso (quantity_used es None), devolvemos la cantidad
+    # completa asignada porque el stock fue descontado al asignar el material.
+    if material.quantity_used is not None:
+        devolucion = material.quantity - material.quantity_used
+    else:
+        devolucion = material.quantity
 
     if devolucion > 0:
         lot.quantity += devolucion
@@ -235,12 +242,12 @@ def task_material_delete(request, pk):
             movement_type=Movement.INSIDE,
             lot=lot,
             quantity=devolucion,
-            reason=f'Devolución de sobrante por eliminación de material en tarea: {task.title}',
+            reason=f'Devolución por desasignación de material en tarea: {task.title}',
             created_by=request.user,
         )
-        messages.success(request, f'Material eliminado. {devolucion} {lot.product.unit} devueltos al lote (sobrante).')
+        messages.success(request, f'Material eliminado. {devolucion} {lot.product.unit} devueltos al lote.')
     else:
-        messages.success(request, 'Material eliminado. Sin sobrante a devolver (todo fue consumido).')
+        messages.success(request, 'Material eliminado. Sin stock a devolver (todo fue consumido).')
 
     material.delete()
     return redirect('tasks:task_detail', pk=task_pk)

@@ -1,0 +1,14 @@
+# ─── Framework principal
+Django>=4.2,<5.0
+
+# ─── Base de datos MySQL
+mysqlclient>=2.2.0
+
+# ─── Archivos estáticos en producción
+whitenoise>=6.6.0
+
+# ─── Servidor WSGI para producción
+gunicorn>=21.2.0
+
+# ─── Manejo de variables de entorno en desarrollo local
+python-dotenv>=1.0.0
