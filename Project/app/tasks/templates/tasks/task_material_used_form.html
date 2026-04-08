@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Reportar uso — {{ material.lot.product.name }}{% endblock %}
+
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4><i class="bi bi-pencil-square me-2"></i>Reportar uso real de material</h4>
+        <small class="opacity-75">Tarea: {{ task.title }}</small>
+    </div>
+    <a href="{% url 'tasks:task_detail' task.pk %}" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card form-card">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-box-seam-fill fs-5"></i>
+                <span class="fw-semibold">{{ material.lot.product.name }}</span>
+                <span class="badge bg-secondary ms-auto">Lote #{{ material.lot.pk }}</span>
+            </div>
+            <div class="card-body p-4" style="background:white;color:#212529;">
+
+                {# Resumen del material #}
+                <div class="row g-3 mb-4 p-3" style="background:#f8f9fa; border-radius:8px;">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Cantidad asignada</small>
+                        <strong>{{ material.quantity }} {{ material.lot.product.unit }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Uso reportado anteriormente</small>
+                        {% if material.quantity_used is not None %}
+                            <strong>{{ material.quantity_used }} {{ material.lot.product.unit }}</strong>
+                        {% else %}
+                            <span class="text-muted fst-italic">Sin reporte previo</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted d-block">Stock actual en lote</small>
+                        <strong>{{ material.lot.quantity }} {{ material.lot.product.unit }}</strong>
+                    </div>
+                </div>
+
+                <p class="text-muted small mb-4">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Ingresá la cantidad que realmente usaste. Si usaste menos de lo asignado, el sobrante se devolverá automáticamente al inventario.
+                </p>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_quantity_used" class="form-label fw-semibold">
+                            Cantidad usada <span class="text-danger">*</span>
+                            <small class="text-muted fw-normal">(máximo {{ material.quantity }} {{ material.lot.product.unit }})</small>
+                        </label>
+                        {{ form.quantity_used }}
+                        {% if form.quantity_used.errors %}
+                            {% for error in form.quantity_used.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn-lc">
+                            <i class="bi bi-check-lg me-1"></i>Guardar
+                        </button>
+                        <a href="{% url 'tasks:task_detail' task.pk %}" class="btn btn-sm btn-outline-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

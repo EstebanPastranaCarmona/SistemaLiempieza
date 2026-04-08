@@ -47,7 +47,7 @@
                     </form>
                     {% endif %}
 
-                    {# Botón Editar #}
+                    {# Botón Editar — bloqueado en VALIDATED #}
                     {% if task.status != 'VALIDATED' %}
                         {% if user.is_admin or user.is_supervisor %}
                         <a href="{% url 'tasks:task_edit' task.pk %}" class="btn-lc">
@@ -129,7 +129,7 @@
             <div class="card-header d-flex align-items-center gap-2">
                 <i class="bi bi-box-seam-fill fs-5"></i>
                 <span class="fw-semibold">Materiales asignados</span>
-                {# CU6: operarios también pueden agregar materiales a sus tareas activas #}
+                {# CU6: operarios también pueden agregar materiales a sus tareas activas. Bloqueado en VALIDATED. #}
                 {% if task.status != 'VALIDATED' %}
                     {% if user.is_admin or user.is_supervisor %}
                     <a href="{% url 'tasks:task_material_create' task.pk %}" class="btn-lc ms-auto">
@@ -148,8 +148,9 @@
                         <tr>
                             <th class="ps-3">Producto</th>
                             <th>Lote #</th>
-                            <th>Cantidad</th>
-                            {% if user.is_admin or user.is_supervisor %}<th></th>{% endif %}
+                            <th>Asignado</th>
+                            <th>Usado</th>
+                            {% if task.status != 'VALIDATED' %}<th></th>{% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -158,21 +159,44 @@
                             <td class="ps-3 fw-semibold">{{ mat.lot.product.name }}</td>
                             <td class="text-muted">#{{ mat.lot.pk }}</td>
                             <td>{{ mat.quantity }} <small class="text-muted">{{ mat.lot.product.unit }}</small></td>
-                            {% if user.is_admin or user.is_supervisor %}
                             <td>
+                                {% if mat.quantity_used is not None %}
+                                    <span class="{% if mat.quantity_used < mat.quantity %}text-warning fw-semibold{% else %}text-success fw-semibold{% endif %}">
+                                        {{ mat.quantity_used }} <small>{{ mat.lot.product.unit }}</small>
+                                    </span>
+                                    {% if mat.quantity_used < mat.quantity %}
+                                    <small class="text-muted d-block">sobrante: {{ mat.surplus }} {{ mat.lot.product.unit }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted fst-italic">—</span>
+                                {% endif %}
+                            </td>
+                            {% if task.status != 'VALIDATED' %}
+                            <td class="d-flex gap-1 align-items-center py-2">
+                                {# Botón reportar uso: operario asignado o admin/supervisor #}
+                                {% if user == task.assigned_to or user.is_admin or user.is_supervisor %}
+                                <a href="{% url 'tasks:task_material_set_used' mat.pk %}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   title="Reportar cuánto usé">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                {% endif %}
+                                {# Botón eliminar: solo admin/supervisor #}
+                                {% if user.is_admin or user.is_supervisor %}
                                 <form method="POST" action="{% url 'tasks:task_material_delete' mat.pk %}" style="display:inline;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('¿Eliminar este material?')">
+                                            onclick="return confirm('¿Eliminar este material? Solo se devolverá el sobrante al inventario.')">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </form>
+                                {% endif %}
                             </td>
                             {% endif %}
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center py-3" style="background:white;color:#888;">Sin materiales asignados.</td>
+                            <td colspan="5" class="text-center py-3" style="background:white;color:#888;">Sin materiales asignados.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -209,7 +233,7 @@
                                  style="max-height:200px;object-fit:cover;width:100%;display:block;"
                                  loading="lazy">
                         </a>
-        {% endif %}
+                        {% endif %}
                     {% endif %}
                     {% if ev.note %}<p class="mb-1 small text-dark">{{ ev.note }}</p>{% endif %}
                     <small class="text-muted">{{ ev.uploaded_by.username }} — {{ ev.uploaded_at|date:"d/m/Y H:i" }}</small>
