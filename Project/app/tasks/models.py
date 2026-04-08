@@ -44,8 +44,14 @@ class Task(models.Model):
     created_at  = models.DateTimeField(auto_now_add=True)
     updated_at  = models.DateTimeField(auto_now=True)
 
+    # Estados que indican que la tarea ya fue atendida (no se marcan como vencidas)
+    COMPLETED_STATUSES = (PENDING_REVIEW, VALIDATED)
+
     def is_overdue(self):
-        return self.scheduled_date < timezone.now().date() and self.status in (self.PENDING, self.IN_PROGRESS)
+        """True solo si la fecha ya pasó Y la tarea sigue sin ser completada ni validada."""
+        if self.status in self.COMPLETED_STATUSES:
+            return False
+        return self.scheduled_date < timezone.now().date()
 
     def __str__(self):
         return f'{self.title} — {self.client.name} ({self.scheduled_date})'
