@@ -3,7 +3,6 @@
 
 {% block custom_styles %}
 <style>
-/* Ocultar/mostrar secciones de filtros según el subtipo */
 .filter-dates  { display: none; }
 .filter-client { display: none; }
 </style>
@@ -11,7 +10,7 @@
 
 {% block body %}
 
-{# ── Page header ─────────────────────────────────────────────────────── #}
+{# ── Page header ───────────────────────────────────────────────────────── #}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h4 class="mb-1"><i class="bi bi-bar-chart-fill me-2"></i>Reportes</h4>
@@ -22,31 +21,33 @@
     </a>
 </div>
 
-{# ── Formulario de selección ──────────────────────────────────────────── #}
+{# ── Formulario ─────────────────────────────────────────────────────────── #}
 <div class="form-card mb-4">
     <div class="card-header">
         <i class="bi bi-sliders me-2"></i>Seleccionar reporte
     </div>
     <div class="p-4">
-        <form method="get" id="reportForm">
+        <form method="get" id="reportForm" onsubmit="prepareSubmit()">
 
-            {# Fila principal: tipo + subtipo #}
+            {# Input oculto que realmente se envía como ?subtipo= #}
+            <input type="hidden" name="subtipo" id="hiddenSubtipo" value="{{ subtipo }}">
+
             <div class="row g-3 mb-3 align-items-end">
 
                 {# Tipo de reporte #}
                 <div class="col-12 col-md-4">
                     <label class="form-label"><i class="bi bi-grid me-1"></i>Área</label>
-                    <select name="tipo" id="selectTipo" class="form-select" onchange="onTipoChange(this.value)">
+                    <select id="selectTipo" name="tipo" class="form-select" onchange="onTipoChange(this.value)">
                         <option value="">— Selecciona un área —</option>
                         <option value="inventario" {% if tipo == 'inventario' %}selected{% endif %}>Inventario</option>
                         <option value="tareas"     {% if tipo == 'tareas'     %}selected{% endif %}>Tareas</option>
                     </select>
                 </div>
 
-                {# Subtipo inventario #}
+                {# Subtipo inventario — SIN name, el JS copia su valor al hidden #}
                 <div class="col-12 col-md-4" id="subtipoInventario" style="display:none;">
                     <label class="form-label"><i class="bi bi-card-list me-1"></i>Tipo de reporte</label>
-                    <select name="subtipo" id="selectSubtipoInv" class="form-select">
+                    <select id="selectSubtipoInv" class="form-select" onchange="syncSubtipo(this.value)">
                         <option value="">— Selecciona —</option>
                         <option value="stock"       {% if subtipo == 'stock'       %}selected{% endif %}>Estado del stock</option>
                         <option value="lotes"       {% if subtipo == 'lotes'       %}selected{% endif %}>Lotes y vencimientos</option>
@@ -54,18 +55,17 @@
                     </select>
                 </div>
 
-                {# Subtipo tareas #}
+                {# Subtipo tareas — SIN name, el JS copia su valor al hidden #}
                 <div class="col-12 col-md-4" id="subtipoTareas" style="display:none;">
                     <label class="form-label"><i class="bi bi-card-list me-1"></i>Tipo de reporte</label>
-                    <select name="subtipo" id="selectSubtipoTar" class="form-select" onchange="onSubtipoTareasChange(this.value)">
+                    <select id="selectSubtipoTar" class="form-select" onchange="syncSubtipo(this.value); onSubtipoTareasChange(this.value)">
                         <option value="">— Selecciona —</option>
-                        <option value="general"    {% if subtipo == 'general'    %}selected{% endif %}>Listado general</option>
-                        <option value="vencidas"   {% if subtipo == 'vencidas'   %}selected{% endif %}>Tareas vencidas</option>
-                        <option value="por_cliente"{% if subtipo == 'por_cliente'%}selected{% endif %}>Resumen por cliente</option>
+                        <option value="general"     {% if subtipo == 'general'     %}selected{% endif %}>Listado general</option>
+                        <option value="vencidas"    {% if subtipo == 'vencidas'    %}selected{% endif %}>Tareas vencidas</option>
+                        <option value="por_cliente" {% if subtipo == 'por_cliente' %}selected{% endif %}>Resumen por cliente</option>
                     </select>
                 </div>
 
-                {# Botón generar #}
                 <div class="col-12 col-md-4">
                     <button type="submit" class="btn-lc w-100 justify-content-center" style="height:42px;">
                         <i class="bi bi-search me-2"></i>Generar reporte
@@ -77,18 +77,15 @@
             {# Filtros opcionales #}
             <div class="row g-3 align-items-end" id="filtrosOpcionales" style="display:none !important;">
 
-                {# Rango de fechas (movimientos, listado general) #}
-                <div class="col-6 col-md-3 filter-dates" id="filterDateFrom">
+                <div class="col-6 col-md-3 filter-dates">
                     <label class="form-label"><i class="bi bi-calendar me-1"></i>Desde</label>
                     <input type="date" name="date_from" value="{{ date_from }}" class="form-control">
                 </div>
-                <div class="col-6 col-md-3 filter-dates" id="filterDateTo">
+                <div class="col-6 col-md-3 filter-dates">
                     <label class="form-label"><i class="bi bi-calendar me-1"></i>Hasta</label>
                     <input type="date" name="date_to" value="{{ date_to }}" class="form-control">
                 </div>
-
-                {# Cliente (listado general, vencidas) #}
-                <div class="col-12 col-md-4 filter-client" id="filterClient">
+                <div class="col-12 col-md-4 filter-client">
                     <label class="form-label"><i class="bi bi-building me-1"></i>Cliente</label>
                     <select name="client" class="form-select">
                         <option value="">Todos los clientes</option>
@@ -128,31 +125,17 @@
             <tr>
                 {% for cell in row %}
                 <td {% if forloop.first %}class="ps-3 fw-semibold"{% endif %}>
-                    {# Colorear columna Estado según valor #}
-                    {% if forloop.parentloop.last == False and cell == 'Vencido' %}
-                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>{{ cell }}</span>
-                    {% elif cell == 'Vencido' %}
-                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>{{ cell }}</span>
-                    {% elif cell == 'Por vencer' %}
-                        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>{{ cell }}</span>
-                    {% elif cell == 'Bajo' %}
-                        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>{{ cell }}</span>
-                    {% elif cell == 'OK' or cell == 'Vigente' %}
-                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ cell }}</span>
-                    {% elif cell == 'Validada' %}
-                        <span class="badge bg-success">{{ cell }}</span>
-                    {% elif cell == 'En progreso' %}
-                        <span class="badge bg-primary">{{ cell }}</span>
-                    {% elif cell == 'Pendiente de revisión' %}
-                        <span class="badge bg-info text-dark">{{ cell }}</span>
-                    {% elif cell == 'Pendiente' %}
-                        <span class="badge bg-warning text-dark">{{ cell }}</span>
-                    {% elif cell == 'Entrada' %}
-                        <span class="badge bg-success"><i class="bi bi-arrow-down-circle me-1"></i>{{ cell }}</span>
-                    {% elif cell == 'Salida' %}
-                        <span class="badge bg-danger"><i class="bi bi-arrow-up-circle me-1"></i>{{ cell }}</span>
-                    {% else %}
-                        {{ cell }}
+                    {% if   cell == 'Vencido'               %}<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>{{ cell }}</span>
+                    {% elif cell == 'Por vencer'            %}<span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>{{ cell }}</span>
+                    {% elif cell == 'Bajo'                  %}<span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>{{ cell }}</span>
+                    {% elif cell == 'OK' or cell == 'Vigente' %}<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ cell }}</span>
+                    {% elif cell == 'Validada'              %}<span class="badge bg-success">{{ cell }}</span>
+                    {% elif cell == 'En progreso'           %}<span class="badge bg-primary">{{ cell }}</span>
+                    {% elif cell == 'Pendiente de revisión' %}<span class="badge bg-info text-dark">{{ cell }}</span>
+                    {% elif cell == 'Pendiente'             %}<span class="badge bg-warning text-dark">{{ cell }}</span>
+                    {% elif cell == 'Entrada'               %}<span class="badge bg-success"><i class="bi bi-arrow-down-circle me-1"></i>{{ cell }}</span>
+                    {% elif cell == 'Salida'                %}<span class="badge bg-danger"><i class="bi bi-arrow-up-circle me-1"></i>{{ cell }}</span>
+                    {% else %}{{ cell }}
                     {% endif %}
                 </td>
                 {% endfor %}
@@ -170,7 +153,6 @@
 </div>
 
 {% elif tipo and subtipo %}
-{# tipo y subtipo definidos pero headers vacío = no hay datos para ese combo #}
 <div class="alert alert-info">
     <i class="bi bi-info-circle me-2"></i>No hay datos para mostrar en el reporte seleccionado.
 </div>
@@ -180,35 +162,33 @@
 
 {% block custom_scripts %}
 <script>
-// Subtipos que muestran filtros de fecha
 const SUBTIPO_FECHA   = ['movimientos', 'general'];
-// Subtipos que muestran filtro de cliente
 const SUBTIPO_CLIENTE = ['general', 'vencidas'];
 
-function showFiltros(subtipo) {
-    const dates   = document.querySelectorAll('.filter-dates');
-    const clients = document.querySelectorAll('.filter-client');
-    const wrap    = document.getElementById('filtrosOpcionales');
+// Copia el valor del select visible al input hidden
+function syncSubtipo(val) {
+    document.getElementById('hiddenSubtipo').value = val;
+}
 
+// Actualiza filtros opcionales visibles según subtipo
+function showFiltros(subtipo) {
+    const wrap = document.getElementById('filtrosOpcionales');
     const showDate   = SUBTIPO_FECHA.includes(subtipo);
     const showClient = SUBTIPO_CLIENTE.includes(subtipo);
 
-    dates.forEach(el   => el.style.display = showDate   ? '' : 'none');
-    clients.forEach(el => el.style.display = showClient ? '' : 'none');
-
-    // Mostrar el contenedor solo si hay algún filtro visible
+    document.querySelectorAll('.filter-dates').forEach(el  => el.style.display = showDate   ? '' : 'none');
+    document.querySelectorAll('.filter-client').forEach(el => el.style.display = showClient ? '' : 'none');
     wrap.style.setProperty('display', (showDate || showClient) ? 'flex' : 'none', 'important');
 }
 
+// Cambia qué bloque de subtipo se muestra
 function onTipoChange(val) {
-    const invBlock = document.getElementById('subtipoInventario');
-    const tarBlock = document.getElementById('subtipoTareas');
-
-    // Mostrar el bloque de subtipo correcto
-    invBlock.style.display = (val === 'inventario') ? '' : 'none';
-    tarBlock.style.display = (val === 'tareas')     ? '' : 'none';
-
-    // Resetear filtros opcionales
+    document.getElementById('subtipoInventario').style.display = val === 'inventario' ? '' : 'none';
+    document.getElementById('subtipoTareas').style.display     = val === 'tareas'     ? '' : 'none';
+    // Resetear subtipo al cambiar área
+    document.getElementById('hiddenSubtipo').value = '';
+    document.getElementById('selectSubtipoInv').value = '';
+    document.getElementById('selectSubtipoTar').value = '';
     showFiltros('');
 }
 
@@ -216,25 +196,35 @@ function onSubtipoTareasChange(val) {
     showFiltros(val);
 }
 
-// Al cargar la página, restaurar el estado si ya hay parámetros en la URL
+// Antes de enviar: asegura que el hidden tenga el valor correcto
+function prepareSubmit() {
+    const tipo = document.getElementById('selectTipo').value;
+    if (tipo === 'inventario') {
+        document.getElementById('hiddenSubtipo').value = document.getElementById('selectSubtipoInv').value;
+    } else if (tipo === 'tareas') {
+        document.getElementById('hiddenSubtipo').value = document.getElementById('selectSubtipoTar').value;
+    }
+}
+
+// Al cargar: restaurar estado si vienen parámetros en la URL
 (function init() {
     const tipo    = '{{ tipo }}';
     const subtipo = '{{ subtipo }}';
+    if (!tipo) return;
 
     // Mostrar bloque de subtipo correcto
-    if (tipo) onTipoChange(tipo);
+    document.getElementById('subtipoInventario').style.display = tipo === 'inventario' ? '' : 'none';
+    document.getElementById('subtipoTareas').style.display     = tipo === 'tareas'     ? '' : 'none';
 
-    // Mostrar filtros si aplica
-    if (subtipo) showFiltros(subtipo);
-
-    // Sincronizar el select de subtipo que está oculto
-    if (tipo === 'inventario') {
-        const sel = document.getElementById('selectSubtipoInv');
-        if (sel && subtipo) sel.value = subtipo;
-    } else if (tipo === 'tareas') {
-        const sel = document.getElementById('selectSubtipoTar');
-        if (sel && subtipo) sel.value = subtipo;
+    // Sincronizar el select visible con el valor del hidden
+    if (tipo === 'inventario' && subtipo) {
+        document.getElementById('selectSubtipoInv').value = subtipo;
+    } else if (tipo === 'tareas' && subtipo) {
+        document.getElementById('selectSubtipoTar').value = subtipo;
     }
+
+    // Mostrar filtros si corresponde
+    if (subtipo) showFiltros(subtipo);
 })();
 </script>
 {% endblock %}
