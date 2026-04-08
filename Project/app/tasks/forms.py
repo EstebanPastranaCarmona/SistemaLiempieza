@@ -46,6 +46,29 @@ class TaskForm(forms.ModelForm):
                 client=self.instance.client, is_active=True
             )
 
+    def clean(self):
+        cleaned = super().clean()
+        assigned_to    = cleaned.get('assigned_to')
+        scheduled_date = cleaned.get('scheduled_date')
+        scheduled_time = cleaned.get('scheduled_time')
+
+        if assigned_to and scheduled_date and scheduled_time:
+            qs = Task.objects.filter(
+                assigned_to=assigned_to,
+                scheduled_date=scheduled_date,
+                scheduled_time=scheduled_time,
+                status__in=[Task.PENDING, Task.IN_PROGRESS],
+            )
+            # Excluir la tarea actual en caso de edición
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError(
+                    f'{assigned_to.get_full_name() or assigned_to.username} ya tiene '
+                    f'una tarea asignada el {scheduled_date} a las {scheduled_time}.'
+                )
+        return cleaned
+
 
 class TaskMaterialForm(forms.ModelForm):
     class Meta:
