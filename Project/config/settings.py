@@ -1,5 +1,6 @@
 """
 Django settings for config project.
+SQLite en desarrollo local, MySQL en producción.
 """
 
 import os
@@ -62,24 +63,32 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# ─── Base de Datos (MySQL) ─────────────────────────────────────────────────────
-# Variables de entorno requeridas en producción:
-#   DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
-# En desarrollo local podés usar un archivo .env o definirlas manualmente.
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME':     os.environ.get('DB_NAME',     'sistemaLiempieza'),
-        'USER':     os.environ.get('DB_USER',     'root'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST':     os.environ.get('DB_HOST',     '127.0.0.1'),
-        'PORT':     os.environ.get('DB_PORT',     '3306'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+# ─── Base de Datos ─────────────────────────────────────────────────────────────
+# Si la variable de entorno DB_NAME está definida → MySQL (producción en Railway)
+# Si no está definida → SQLite (desarrollo local, sin configuración extra)
+if os.environ.get('DB_NAME'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME':     os.environ.get('DB_NAME'),
+            'USER':     os.environ.get('DB_USER',     'root'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST':     os.environ.get('DB_HOST',     '127.0.0.1'),
+            'PORT':     os.environ.get('DB_PORT',     '3306'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
     }
-}
+else:
+    # Desarrollo local — SQLite, sin necesidad de instalar nada extra
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # ─── Validación de contraseñas ─────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
