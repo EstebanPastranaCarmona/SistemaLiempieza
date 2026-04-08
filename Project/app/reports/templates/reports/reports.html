@@ -10,7 +10,6 @@
 
 {% block body %}
 
-{# ── Page header ───────────────────────────────────────────────────────── #}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h4 class="mb-1"><i class="bi bi-bar-chart-fill me-2"></i>Reportes</h4>
@@ -21,83 +20,75 @@
     </a>
 </div>
 
-{# ── Formulario ─────────────────────────────────────────────────────────── #}
 <div class="form-card mb-4">
     <div class="card-header">
         <i class="bi bi-sliders me-2"></i>Seleccionar reporte
     </div>
     <div class="p-4">
-        <form method="get" id="reportForm" onsubmit="prepareSubmit()">
 
-            {# Input oculto que realmente se envía como ?subtipo= #}
-            <input type="hidden" name="subtipo" id="hiddenSubtipo" value="{{ subtipo }}">
+        {# No usamos <form> — el JS construye la URL y navega directamente #}
+        <div class="row g-3 mb-3 align-items-end">
 
-            <div class="row g-3 mb-3 align-items-end">
-
-                {# Tipo de reporte #}
-                <div class="col-12 col-md-4">
-                    <label class="form-label"><i class="bi bi-grid me-1"></i>Área</label>
-                    <select id="selectTipo" name="tipo" class="form-select" onchange="onTipoChange(this.value)">
-                        <option value="">— Selecciona un área —</option>
-                        <option value="inventario" {% if tipo == 'inventario' %}selected{% endif %}>Inventario</option>
-                        <option value="tareas"     {% if tipo == 'tareas'     %}selected{% endif %}>Tareas</option>
-                    </select>
-                </div>
-
-                {# Subtipo inventario — SIN name, el JS copia su valor al hidden #}
-                <div class="col-12 col-md-4" id="subtipoInventario" style="display:none;">
-                    <label class="form-label"><i class="bi bi-card-list me-1"></i>Tipo de reporte</label>
-                    <select id="selectSubtipoInv" class="form-select" onchange="syncSubtipo(this.value)">
-                        <option value="">— Selecciona —</option>
-                        <option value="stock"       {% if subtipo == 'stock'       %}selected{% endif %}>Estado del stock</option>
-                        <option value="lotes"       {% if subtipo == 'lotes'       %}selected{% endif %}>Lotes y vencimientos</option>
-                        <option value="movimientos" {% if subtipo == 'movimientos' %}selected{% endif %}>Movimientos (entradas/salidas)</option>
-                    </select>
-                </div>
-
-                {# Subtipo tareas — SIN name, el JS copia su valor al hidden #}
-                <div class="col-12 col-md-4" id="subtipoTareas" style="display:none;">
-                    <label class="form-label"><i class="bi bi-card-list me-1"></i>Tipo de reporte</label>
-                    <select id="selectSubtipoTar" class="form-select" onchange="syncSubtipo(this.value); onSubtipoTareasChange(this.value)">
-                        <option value="">— Selecciona —</option>
-                        <option value="general"     {% if subtipo == 'general'     %}selected{% endif %}>Listado general</option>
-                        <option value="vencidas"    {% if subtipo == 'vencidas'    %}selected{% endif %}>Tareas vencidas</option>
-                        <option value="por_cliente" {% if subtipo == 'por_cliente' %}selected{% endif %}>Resumen por cliente</option>
-                    </select>
-                </div>
-
-                <div class="col-12 col-md-4">
-                    <button type="submit" class="btn-lc w-100 justify-content-center" style="height:42px;">
-                        <i class="bi bi-search me-2"></i>Generar reporte
-                    </button>
-                </div>
-
+            <div class="col-12 col-md-4">
+                <label class="form-label"><i class="bi bi-grid me-1"></i>Área</label>
+                <select id="selectTipo" class="form-select" onchange="onTipoChange(this.value)">
+                    <option value="">— Selecciona un área —</option>
+                    <option value="inventario" {% if tipo == 'inventario' %}selected{% endif %}>Inventario</option>
+                    <option value="tareas"     {% if tipo == 'tareas'     %}selected{% endif %}>Tareas</option>
+                </select>
             </div>
 
-            {# Filtros opcionales #}
-            <div class="row g-3 align-items-end" id="filtrosOpcionales" style="display:none !important;">
-
-                <div class="col-6 col-md-3 filter-dates">
-                    <label class="form-label"><i class="bi bi-calendar me-1"></i>Desde</label>
-                    <input type="date" name="date_from" value="{{ date_from }}" class="form-control">
-                </div>
-                <div class="col-6 col-md-3 filter-dates">
-                    <label class="form-label"><i class="bi bi-calendar me-1"></i>Hasta</label>
-                    <input type="date" name="date_to" value="{{ date_to }}" class="form-control">
-                </div>
-                <div class="col-12 col-md-4 filter-client">
-                    <label class="form-label"><i class="bi bi-building me-1"></i>Cliente</label>
-                    <select name="client" class="form-select">
-                        <option value="">Todos los clientes</option>
-                        {% for c in clients %}
-                        <option value="{{ c.pk }}" {% if client_id == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
+            <div class="col-12 col-md-4" id="subtipoInventario" style="display:none;">
+                <label class="form-label"><i class="bi bi-card-list me-1"></i>Tipo de reporte</label>
+                <select id="selectSubtipoInv" class="form-select" onchange="onSubtipoInvChange(this.value)">
+                    <option value="">— Selecciona —</option>
+                    <option value="stock"       {% if subtipo == 'stock'       %}selected{% endif %}>Estado del stock</option>
+                    <option value="lotes"       {% if subtipo == 'lotes'       %}selected{% endif %}>Lotes y vencimientos</option>
+                    <option value="movimientos" {% if subtipo == 'movimientos' %}selected{% endif %}>Movimientos (entradas/salidas)</option>
+                </select>
             </div>
 
-        </form>
+            <div class="col-12 col-md-4" id="subtipoTareas" style="display:none;">
+                <label class="form-label"><i class="bi bi-card-list me-1"></i>Tipo de reporte</label>
+                <select id="selectSubtipoTar" class="form-select" onchange="onSubtipoTarChange(this.value)">
+                    <option value="">— Selecciona —</option>
+                    <option value="general"     {% if subtipo == 'general'     %}selected{% endif %}>Listado general</option>
+                    <option value="vencidas"    {% if subtipo == 'vencidas'    %}selected{% endif %}>Tareas vencidas</option>
+                    <option value="por_cliente" {% if subtipo == 'por_cliente' %}selected{% endif %}>Resumen por cliente</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <button onclick="generarReporte()" class="btn-lc w-100 justify-content-center" style="height:42px;">
+                    <i class="bi bi-search me-2"></i>Generar reporte
+                </button>
+            </div>
+
+        </div>
+
+        {# Filtros opcionales #}
+        <div class="row g-3 align-items-end" id="filtrosOpcionales" style="display:none !important;">
+
+            <div class="col-6 col-md-3 filter-dates">
+                <label class="form-label"><i class="bi bi-calendar me-1"></i>Desde</label>
+                <input type="date" id="dateFrom" value="{{ date_from }}" class="form-control">
+            </div>
+            <div class="col-6 col-md-3 filter-dates">
+                <label class="form-label"><i class="bi bi-calendar me-1"></i>Hasta</label>
+                <input type="date" id="dateTo" value="{{ date_to }}" class="form-control">
+            </div>
+            <div class="col-12 col-md-4 filter-client">
+                <label class="form-label"><i class="bi bi-building me-1"></i>Cliente</label>
+                <select id="selectClient" class="form-select">
+                    <option value="">Todos los clientes</option>
+                    {% for c in clients %}
+                    <option value="{{ c.pk }}" {% if client_id == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
     </div>
 </div>
 
@@ -165,65 +156,68 @@
 const SUBTIPO_FECHA   = ['movimientos', 'general'];
 const SUBTIPO_CLIENTE = ['general', 'vencidas'];
 
-// Copia el valor del select visible al input hidden
-function syncSubtipo(val) {
-    document.getElementById('hiddenSubtipo').value = val;
+function getSubtipoActivo() {
+    const tipo = document.getElementById('selectTipo').value;
+    if (tipo === 'inventario') return document.getElementById('selectSubtipoInv').value;
+    if (tipo === 'tareas')     return document.getElementById('selectSubtipoTar').value;
+    return '';
 }
 
-// Actualiza filtros opcionales visibles según subtipo
 function showFiltros(subtipo) {
-    const wrap = document.getElementById('filtrosOpcionales');
+    const wrap       = document.getElementById('filtrosOpcionales');
     const showDate   = SUBTIPO_FECHA.includes(subtipo);
     const showClient = SUBTIPO_CLIENTE.includes(subtipo);
-
     document.querySelectorAll('.filter-dates').forEach(el  => el.style.display = showDate   ? '' : 'none');
     document.querySelectorAll('.filter-client').forEach(el => el.style.display = showClient ? '' : 'none');
     wrap.style.setProperty('display', (showDate || showClient) ? 'flex' : 'none', 'important');
 }
 
-// Cambia qué bloque de subtipo se muestra
 function onTipoChange(val) {
     document.getElementById('subtipoInventario').style.display = val === 'inventario' ? '' : 'none';
     document.getElementById('subtipoTareas').style.display     = val === 'tareas'     ? '' : 'none';
-    // Resetear subtipo al cambiar área
-    document.getElementById('hiddenSubtipo').value = '';
     document.getElementById('selectSubtipoInv').value = '';
     document.getElementById('selectSubtipoTar').value = '';
     showFiltros('');
 }
 
-function onSubtipoTareasChange(val) {
-    showFiltros(val);
+function onSubtipoInvChange(val)  { showFiltros(val); }
+function onSubtipoTarChange(val)  { showFiltros(val); }
+
+function generarReporte() {
+    const tipo    = document.getElementById('selectTipo').value;
+    const subtipo = getSubtipoActivo();
+
+    if (!tipo)    { alert('Selecciona un área primero.'); return; }
+    if (!subtipo) { alert('Selecciona un tipo de reporte.'); return; }
+
+    const params = new URLSearchParams({ tipo, subtipo });
+
+    const dateFrom = document.getElementById('dateFrom')?.value;
+    const dateTo   = document.getElementById('dateTo')?.value;
+    const client   = document.getElementById('selectClient')?.value;
+
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo)   params.set('date_to',   dateTo);
+    if (client)   params.set('client',    client);
+
+    window.location.href = '?' + params.toString();
 }
 
-// Antes de enviar: asegura que el hidden tenga el valor correcto
-function prepareSubmit() {
-    const tipo = document.getElementById('selectTipo').value;
-    if (tipo === 'inventario') {
-        document.getElementById('hiddenSubtipo').value = document.getElementById('selectSubtipoInv').value;
-    } else if (tipo === 'tareas') {
-        document.getElementById('hiddenSubtipo').value = document.getElementById('selectSubtipoTar').value;
-    }
-}
-
-// Al cargar: restaurar estado si vienen parámetros en la URL
+// Restaurar estado al cargar si hay parámetros en la URL
 (function init() {
     const tipo    = '{{ tipo }}';
     const subtipo = '{{ subtipo }}';
     if (!tipo) return;
 
-    // Mostrar bloque de subtipo correcto
+    document.getElementById('selectTipo').value = tipo;
     document.getElementById('subtipoInventario').style.display = tipo === 'inventario' ? '' : 'none';
     document.getElementById('subtipoTareas').style.display     = tipo === 'tareas'     ? '' : 'none';
 
-    // Sincronizar el select visible con el valor del hidden
-    if (tipo === 'inventario' && subtipo) {
+    if (tipo === 'inventario' && subtipo)
         document.getElementById('selectSubtipoInv').value = subtipo;
-    } else if (tipo === 'tareas' && subtipo) {
+    if (tipo === 'tareas' && subtipo)
         document.getElementById('selectSubtipoTar').value = subtipo;
-    }
 
-    // Mostrar filtros si corresponde
     if (subtipo) showFiltros(subtipo);
 })();
 </script>
