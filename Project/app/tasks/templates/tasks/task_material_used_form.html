@@ -44,22 +44,41 @@
 
                 <p class="text-muted small mb-4">
                     <i class="bi bi-info-circle me-1"></i>
-                    Ingresá la cantidad que realmente usaste. Si usaste menos de lo asignado, el sobrante se devolverá automáticamente al inventario.
+                    Ingresá la cantidad que realmente usaste. Si usaste menos de lo asignado
+                    ({{ material.quantity }} {{ material.lot.product.unit }}),
+                    el sobrante se devolverá automáticamente al inventario.
                 </p>
 
                 <form method="POST">
                     {% csrf_token %}
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="id_quantity_used" class="form-label fw-semibold">
-                            Cantidad usada <span class="text-danger">*</span>
-                            <small class="text-muted fw-normal">(máximo {{ material.quantity }} {{ material.lot.product.unit }})</small>
+                            ¿Cuánto usaste?
+                            <span class="text-danger">*</span>
+                            <small class="text-muted fw-normal">
+                                (entre 0 y {{ material.quantity }} {{ material.lot.product.unit }})
+                            </small>
                         </label>
-                        {{ form.quantity_used }}
+                        {# Renderizamos el widget manualmente para garantizar que el value está presente #}
+                        <input
+                            type="number"
+                            name="quantity_used"
+                            id="id_quantity_used"
+                            class="form-control form-control-lg"
+                            min="0"
+                            max="{{ material.quantity }}"
+                            value="{% if form.quantity_used.value is not None %}{{ form.quantity_used.value }}{% else %}{{ material.quantity }}{% endif %}"
+                            required
+                            autofocus
+                        >
                         {% if form.quantity_used.errors %}
                             {% for error in form.quantity_used.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
+                            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
                             {% endfor %}
                         {% endif %}
+                        <div class="form-text">
+                            El campo ya viene cargado con la cantidad asignada. Modificalo solo si usaste menos.
+                        </div>
                     </div>
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn-lc">

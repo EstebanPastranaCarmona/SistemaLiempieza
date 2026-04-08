@@ -216,25 +216,17 @@ def task_material_create(request, task_pk):
 @supervisor_or_admin_required
 @require_POST
 def task_material_delete(request, pk):
-    """
-    Eliminar un material asignado a una tarea.
-    - Si la tarea está VALIDATED: no se permite.
-    - Si tiene quantity_used registrado: solo se devuelve el sobrante (quantity - quantity_used).
-    - Si NO tiene quantity_used: se devuelve todo (comportamiento original).
-    """
     from app.inventory.models import Movement
     material = get_object_or_404(TaskMaterial, pk=pk)
     task     = material.task
     task_pk  = task.pk
 
-    # Bloqueo total en VALIDATED
     if task.status == Task.VALIDATED:
         messages.error(request, 'No se pueden eliminar materiales de una tarea ya validada.')
         return redirect('tasks:task_detail', pk=task_pk)
 
-    lot = material.lot
-    # Solo se devuelve el sobrante, el resto ya fue consumido
-    devolucion = material.surplus()  # quantity - quantity_used (o quantity si aún no se reportó uso)
+    lot        = material.lot
+    devolucion = material.surplus()
 
     if devolucion > 0:
         lot.quantity += devolucion
@@ -248,53 +240,49 @@ def task_material_delete(request, pk):
         )
         messages.success(request, f'Material eliminado. {devolucion} {lot.product.unit} devueltos al lote (sobrante).')
     else:
-        messages.success(request, f'Material eliminado. Sin sobrante a devolver (todo fue consumido).')
+        messages.success(request, 'Material eliminado. Sin sobrante a devolver (todo fue consumido).')
 
     material.delete()
     return redirect('tasks:task_detail', pk=task_pk)
 
 
-# ── Reportar uso real de material (CU6) ─────────────────────────────
-# El operario indica cuánto usó realmente. Si usó menos de lo asignado,
-# el sobrante se devuelve al inventario automáticamente.
+# ── Reportar uso real de material — SOLO operario asignado ─────────
 
 @login_required
 def task_material_set_used(request, pk):
     """
-    Permite al operario (o admin/supervisor) reportar la cantidad real usada de un material.
-    Solo disponible mientras la tarea NO esté VALIDATED.
-    Si la cantidad usada es menor a la asignada, el sobrante se devuelve al inventario.
+    Solo el operario asignado a la tarea puede reportar el uso real de un material.
+    Admins y supervisores NO tienen acceso a esta vista (ellos gestionan el inventario
+    directamente, no el consumo operativo).
     """
     from app.inventory.models import Movement
     material = get_object_or_404(TaskMaterial, pk=pk)
     task     = material.task
+
+    # Solo el operario asignado puede reportar uso
+    if task.assigned_to != request.user:
+        messages.error(request, 'Solo el operario asignado puede reportar el uso de materiales.')
+        return redirect('tasks:task_detail', pk=task.pk)
 
     # Bloqueo total en VALIDATED
     if task.status == Task.VALIDATED:
         messages.error(request, 'La tarea ya está validada, no se puede modificar el uso de materiales.')
         return redirect('tasks:task_detail', pk=task.pk)
 
-    # Operarios solo pueden reportar en sus propias tareas activas
-    if request.user.is_operario:
-        if task.assigned_to != request.user:
-            messages.error(request, 'Solo podés reportar uso en tus propias tareas.')
-            return redirect('tasks:task_list')
+    prev_used = material.quantity_used
 
-    # Guardamos el quantity_used anterior para calcular devoluciones
-    prev_used = material.quantity_used  # None si nunca se reportó
+    # Precargamos el input con la cantidad asignada si no hay reporte previo
+    initial = {}
+    if prev_used is None:
+        initial['quantity_used'] = material.quantity
 
-    form = TaskMaterialUsedForm(request.POST or None, instance=material)
+    form = TaskMaterialUsedForm(request.POST or None, instance=material, initial=initial)
     if form.is_valid():
         new_used = form.cleaned_data['quantity_used']
 
-        # Calcular cuánto hay que devolver o descontar respecto al reporte anterior
         if prev_used is None:
-            # Primera vez que se reporta: se devuelve el sobrante (quantity - new_used)
             sobrante = material.quantity - new_used
         else:
-            # Ya había un reporte previo: ajustamos la diferencia
-            # sobrante positivo = se devuelve más al inventario
-            # sobrante negativo = se descuenta más del inventario (usó más de lo reportado antes)
             sobrante = prev_used - new_used
 
         lot = material.lot
@@ -309,7 +297,6 @@ def task_material_set_used(request, pk):
                 created_by=request.user,
             )
         elif sobrante < 0:
-            # El operario usó más de lo reportado antes — se descuenta la diferencia
             extra = abs(sobrante)
             if lot.quantity < extra:
                 messages.error(request, f'No hay suficiente stock en el lote para registrar ese consumo adicional (disponible: {lot.quantity} {lot.product.unit}).')
@@ -355,14 +342,6 @@ def task_review(request, task_pk):
         review.reviewed_by = request.user
         review.save()
         if review.result == TaskReview.APPROVED:
-            # Al validar: devolver sobrantes de materiales que aún no tenían uso reportado
-            for mat in task.materials.all():
-                if mat.quantity_used is None:
-                    # No se reportó uso → se asume que se usó todo (sin devolución)
-                    pass
-                elif mat.surplus() > 0:
-                    # Hay sobrante confirmado y ya se procesó al momento de reportar uso
-                    pass
             task.status = Task.VALIDATED
             task.save()
             messages.success(request, 'Tarea aprobada y marcada como Validada.')

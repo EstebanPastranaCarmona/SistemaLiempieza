@@ -129,7 +129,6 @@
             <div class="card-header d-flex align-items-center gap-2">
                 <i class="bi bi-box-seam-fill fs-5"></i>
                 <span class="fw-semibold">Materiales asignados</span>
-                {# CU6: operarios también pueden agregar materiales a sus tareas activas. Bloqueado en VALIDATED. #}
                 {% if task.status != 'VALIDATED' %}
                     {% if user.is_admin or user.is_supervisor %}
                     <a href="{% url 'tasks:task_material_create' task.pk %}" class="btn-lc ms-auto">
@@ -150,7 +149,10 @@
                             <th>Lote #</th>
                             <th>Asignado</th>
                             <th>Usado</th>
-                            {% if task.status != 'VALIDATED' %}<th></th>{% endif %}
+                            {# Columna acciones: botón reportar uso solo para operario; botón eliminar solo para admin/supervisor #}
+                            {% if task.status != 'VALIDATED' %}
+                            <th></th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -173,8 +175,8 @@
                             </td>
                             {% if task.status != 'VALIDATED' %}
                             <td class="d-flex gap-1 align-items-center py-2">
-                                {# Botón reportar uso: operario asignado o admin/supervisor #}
-                                {% if user == task.assigned_to or user.is_admin or user.is_supervisor %}
+                                {# Botón reportar uso: SOLO el operario asignado #}
+                                {% if user == task.assigned_to %}
                                 <a href="{% url 'tasks:task_material_set_used' mat.pk %}"
                                    class="btn btn-sm btn-outline-primary"
                                    title="Reportar cuánto usé">
