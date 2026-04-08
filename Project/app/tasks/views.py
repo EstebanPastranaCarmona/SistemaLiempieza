@@ -137,6 +137,10 @@ def evidence_create(request, task_pk):
     if request.user.is_operario and task.assigned_to != request.user:
         messages.error(request, 'No podés subir evidencia para esta tarea.')
         return redirect('tasks:task_list')
+    # CU3 / CU6: evidencia solo cuando la tarea está activa (no validada)
+    if task.status == Task.VALIDATED:
+        messages.error(request, 'No se puede subir evidencia a una tarea ya validada.')
+        return redirect('tasks:task_detail', pk=task_pk)
 
     form = EvidenceForm(request.POST or None, request.FILES or None)
     if form.is_valid():
@@ -150,14 +154,22 @@ def evidence_create(request, task_pk):
 
 
 # ── Materiales ──────────────────────────────────────────────────
+# CU6: operarios y supervisores pueden agregar materiales
 
 @login_required
-@supervisor_or_admin_required
 def task_material_create(request, task_pk):
     from app.inventory.models import Lot
     task = get_object_or_404(Task, pk=task_pk)
 
-    # Datos de stock para el JS del template: lista de (id, quantity, unit)
+    # Operarios solo pueden agregar materiales a sus propias tareas activas
+    if request.user.is_operario:
+        if task.assigned_to != request.user:
+            messages.error(request, 'Solo podés agregar materiales a tus propias tareas.')
+            return redirect('tasks:task_list')
+        if task.status not in (Task.PENDING, Task.IN_PROGRESS):
+            messages.error(request, 'Solo podés agregar materiales a tareas pendientes o en progreso.')
+            return redirect('tasks:task_detail', pk=task_pk)
+
     lot_stock_data = Lot.objects.filter(is_active=True).select_related('product').values_list(
         'id', 'quantity', 'product__unit'
     )
@@ -169,19 +181,23 @@ def task_material_create(request, task_pk):
         if material.lot.quantity < material.quantity:
             messages.error(request, f'Stock insuficiente en el lote seleccionado (disponible: {material.lot.quantity} {material.lot.product.unit}).')
         else:
-            from app.inventory.models import Movement
-            material.lot.quantity -= material.quantity
-            material.lot.save()
-            Movement.objects.create(
-                movement_type=Movement.OUTSIDE,
-                lot=material.lot,
-                quantity=material.quantity,
-                reason=f'Consumo en tarea: {task.title}',
-                created_by=request.user,
-            )
-            material.save()
-            messages.success(request, 'Material asignado y descontado del inventario.')
-            return redirect('tasks:task_detail', pk=task_pk)
+            # Verificar si el lote ya fue asignado a esta tarea (unique_together)
+            if TaskMaterial.objects.filter(task=task, lot=material.lot).exists():
+                messages.error(request, 'Ese lote ya fue asignado a esta tarea. Editá la cantidad existente o elegí otro lote.')
+            else:
+                from app.inventory.models import Movement
+                material.lot.quantity -= material.quantity
+                material.lot.save()
+                Movement.objects.create(
+                    movement_type=Movement.OUTSIDE,
+                    lot=material.lot,
+                    quantity=material.quantity,
+                    reason=f'Consumo en tarea: {task.title}',
+                    created_by=request.user,
+                )
+                material.save()
+                messages.success(request, 'Material asignado y descontado del inventario.')
+                return redirect('tasks:task_detail', pk=task_pk)
 
     return render(request, 'tasks/task_material_form.html', {
         'form':           form,
@@ -198,13 +214,11 @@ def task_material_delete(request, pk):
     material = get_object_or_404(TaskMaterial, pk=pk)
     task_pk  = material.task.pk
 
-    # Devolver el stock al lote
     lot           = material.lot
     qty           = material.quantity
     lot.quantity += qty
     lot.save()
 
-    # Registrar movimiento de entrada por devolución
     Movement.objects.create(
         movement_type=Movement.INSIDE,
         lot=lot,
@@ -218,7 +232,7 @@ def task_material_delete(request, pk):
     return redirect('tasks:task_detail', pk=task_pk)
 
 
-# ── Revisión del supervisor ──────────────────────────────────────────
+# ── Revisión del supervisor (CU7) ──────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
@@ -227,6 +241,8 @@ def task_review(request, task_pk):
     if task.status != Task.PENDING_REVIEW:
         messages.error(request, 'Solo se pueden revisar tareas con estado Pendiente de revisión.')
         return redirect('tasks:task_detail', pk=task_pk)
+
+    # Si ya existe una revisión previa la eliminamos para permitir re-revisión
     if hasattr(task, 'review'):
         task.review.delete()
 
@@ -241,8 +257,19 @@ def task_review(request, task_pk):
             task.save()
             messages.success(request, 'Tarea aprobada y marcada como Validada.')
         else:
-            task.status = Task.PENDING
+            # CU7: al rechazar la tarea vuelve a IN_PROGRESS (no a PENDING)
+            # para que el operario vea el motivo y pueda re-enviarla.
+            task.status = Task.IN_PROGRESS
             task.save()
-            messages.warning(request, 'Tarea rechazada. El operario debe completarla nuevamente.')
+            # CU7: notificación activa al operario con el comentario de rechazo
+            operario_name = ''
+            if task.assigned_to:
+                operario_name = task.assigned_to.get_full_name() or task.assigned_to.username
+            comentario = review.comment or 'Sin comentario del supervisor.'
+            messages.warning(
+                request,
+                f'Tarea rechazada. {operario_name} verá el motivo al ingresar: "{comentario}". '
+                f'La tarea volvió a estado En progreso.'
+            )
         return redirect('tasks:task_detail', pk=task_pk)
     return render(request, 'tasks/task_review.html', {'form': form, 'task': task})

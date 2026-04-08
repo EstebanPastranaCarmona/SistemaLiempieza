@@ -2,51 +2,107 @@
 {% block title %}Reportes{% endblock %}
 
 {% block body %}
-
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="mb-1"><i class="bi bi-bar-chart-fill me-2"></i>Reportes</h4>
-        <small class="opacity-75">Selecciona el módulo sobre el que deseas generar un reporte</small>
+        <small class="opacity-75">Resumen general del sistema</small>
     </div>
-    <a href="{% url 'users:dashboard' %}" class="btn-lc-outline">
-        <i class="bi bi-arrow-left me-1"></i>Dashboard
-    </a>
 </div>
 
-<div class="row g-4 mt-1">
+{# KPIs #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card form-card text-center p-3">
+            <div class="fs-2 fw-bold text-primary">{{ validated_tasks }}</div>
+            <small class="text-muted">Tareas validadas</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card form-card text-center p-3">
+            <div class="fs-2 fw-bold {% if pending_review > 0 %}text-warning{% else %}text-success{% endif %}">{{ pending_review }}</div>
+            <small class="text-muted">En espera de revisión</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card form-card text-center p-3">
+            <div class="fs-2 fw-bold {% if low_stock_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ low_stock_count }}</div>
+            <small class="text-muted">Productos stock bajo</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card form-card text-center p-3">
+            <div class="fs-2 fw-bold {% if overdue_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ overdue_count }}</div>
+            <small class="text-muted">Tareas atrasadas</small>
+        </div>
+    </div>
+</div>
 
-    <div class="col-12 col-md-6">
-        <a href="{% url 'reports:inventory' %}" class="text-decoration-none text-white">
+{# Módulos de reportes #}
+<div class="row g-4">
+    <div class="col-md-4">
+        <a href="{% url 'reports:inventario' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon me-3">
-                        <i class="bi bi-box-seam"></i>
-                    </div>
+                    <div class="card-icon"><i class="bi bi-boxes"></i></div>
                     <div>
-                        <h5 class="mb-1 text-white">Inventario</h5>
-                        <small class="opacity-75">Stock actual, lotes, vencimientos y movimientos</small>
+                        <h6 class="mb-1 text-white">Inventario</h6>
+                        <small class="text-white opacity-75">Estado de productos y stock</small>
                     </div>
                 </div>
             </div>
         </a>
     </div>
-
-    <div class="col-12 col-md-6">
-        <a href="{% url 'reports:tasks' %}" class="text-decoration-none text-white">
+    <div class="col-md-4">
+        <a href="{% url 'reports:tareas' %}" class="text-decoration-none">
             <div class="dashboard-card p-4 h-100">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon me-3">
-                        <i class="bi bi-clipboard-check"></i>
-                    </div>
+                    <div class="card-icon"><i class="bi bi-clipboard2-check"></i></div>
                     <div>
-                        <h5 class="mb-1 text-white">Tareas</h5>
-                        <small class="opacity-75">Listado general, tareas vencidas y resumen por cliente</small>
+                        <h6 class="mb-1 text-white">Tareas</h6>
+                        <small class="text-white opacity-75">Historial por fecha y cliente</small>
                     </div>
                 </div>
             </div>
         </a>
     </div>
-
+    <div class="col-md-4">
+        <a href="{% url 'reports:consumo' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-arrow-down-circle"></i></div>
+                    <div>
+                        <h6 class="mb-1 text-white">Consumo</h6>
+                        <small class="text-white opacity-75">Salidas de inventario</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{% url 'reports:clientes' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-building-check"></i></div>
+                    <div>
+                        <h6 class="mb-1 text-white">Clientes</h6>
+                        <small class="text-white opacity-75">Cumplimiento por cliente</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{% url 'reports:stock_bajo' %}" class="text-decoration-none">
+            <div class="dashboard-card p-4 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div>
+                        <h6 class="mb-1 text-white">Alertas de stock</h6>
+                        <small class="text-white opacity-75">Stock bajo y lotes vencidos</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
 </div>
-
 {% endblock %}

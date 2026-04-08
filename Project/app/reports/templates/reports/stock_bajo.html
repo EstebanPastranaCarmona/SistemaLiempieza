@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Alertas de Stock{% endblock %}
+
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4><i class="bi bi-exclamation-triangle me-2"></i>Alertas de Stock</h4>
+        <small class="opacity-75">Productos bajo mínimo y lotes próximos a vencer</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="?export=csv" class="btn btn-sm btn-success">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar CSV
+        </a>
+        <a href="{% url 'reports:index' %}" class="btn btn-sm btn-outline-light">
+            <i class="bi bi-arrow-left me-1"></i>Reportes
+        </a>
+    </div>
+</div>
+
+{% if low_stock %}
+<h6 class="mb-2"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Productos con stock bajo ({{ low_stock|length }})</h6>
+<div class="card form-card mb-4">
+    <div class="card-body p-0">
+        <table class="table table-lc mb-0">
+            <thead><tr><th class="ps-3">Producto</th><th>Stock actual</th><th>Mínimo</th><th>Proveedor</th></tr></thead>
+            <tbody>
+                {% for p in low_stock %}
+                <tr class="table-warning">
+                    <td class="ps-3 fw-semibold">{{ p.name }}</td>
+                    <td class="text-danger fw-bold">{{ p.get_total_stock }} {{ p.unit }}</td>
+                    <td>{{ p.min_stock }} {{ p.unit }}</td>
+                    <td class="text-muted">{{ p.supplier|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if expiring_lots %}
+<h6 class="mb-2"><i class="bi bi-clock-history text-warning me-1"></i>Lotes por vencer en los próximos 30 días ({{ expiring_lots|length }})</h6>
+<div class="card form-card">
+    <div class="card-body p-0">
+        <table class="table table-lc mb-0">
+            <thead><tr><th class="ps-3">Producto</th><th>Lote #</th><th>Cantidad</th><th>Vencimiento</th><th>Estado</th></tr></thead>
+            <tbody>
+                {% for lot in expiring_lots %}
+                <tr {% if lot.expiration_date < today %}class="table-danger"{% else %}class="table-warning"{% endif %}>
+                    <td class="ps-3 fw-semibold">{{ lot.product.name }}</td>
+                    <td class="text-muted">#{{ lot.pk }}</td>
+                    <td>{{ lot.quantity }} {{ lot.product.unit }}</td>
+                    <td>{{ lot.expiration_date }}</td>
+                    <td>
+                        {% if lot.expiration_date < today %}
+                            <span class="badge bg-danger">VENCIDO</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Vence en {{ lot.days_until_expiration }} días</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if not low_stock and not expiring_lots %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
+    No hay alertas activas de inventario.
+</div>
+{% endif %}
+{% endblock %}

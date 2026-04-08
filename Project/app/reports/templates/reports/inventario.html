@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Reporte Inventario{% endblock %}
+
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4><i class="bi bi-boxes me-2"></i>Reporte de Inventario</h4>
+        <small class="opacity-75">Estado actual de todos los productos</small>
+    </div>
+    <div class="d-flex gap-2">
+        {# CU8: Exportar CSV #}
+        <a href="?{% if search %}q={{ search }}&{% endif %}export=csv" class="btn btn-sm btn-success">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar CSV
+        </a>
+        <a href="{% url 'reports:index' %}" class="btn btn-sm btn-outline-light">
+            <i class="bi bi-arrow-left me-1"></i>Reportes
+        </a>
+    </div>
+</div>
+
+<form method="GET" class="mb-3 d-flex gap-2">
+    <input type="text" name="q" value="{{ search }}" class="form-control form-control-sm" placeholder="Buscar producto..." style="max-width:260px">
+    <button type="submit" class="btn btn-sm btn-outline-light"><i class="bi bi-search"></i></button>
+    {% if search %}<a href="{% url 'reports:inventario' %}" class="btn btn-sm btn-outline-secondary">Limpiar</a>{% endif %}
+</form>
+
+<div class="card form-card">
+    <div class="card-body p-0">
+        <table class="table table-lc mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-3">Producto</th>
+                    <th>Tipo</th>
+                    <th>Unidad</th>
+                    <th>Stock</th>
+                    <th>Mínimo</th>
+                    <th>Proveedor</th>
+                    <th>Almacén</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr {% if p.is_below_min_stock %}class="table-warning"{% endif %}>
+                    <td class="ps-3 fw-semibold">{{ p.name }}</td>
+                    <td>{{ p.product_type }}</td>
+                    <td>{{ p.unit }}</td>
+                    <td class="fw-semibold">{{ p.get_total_stock }}</td>
+                    <td>{{ p.min_stock }}</td>
+                    <td class="text-muted">{{ p.supplier|default:"—" }}</td>
+                    <td class="text-muted">{{ p.warehouse_location|default:"—" }}</td>
+                    <td>
+                        {% if p.is_below_min_stock %}
+                            <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Bajo</span>
+                        {% else %}
+                            <span class="badge bg-success">OK</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center py-4" style="background:white;color:#888;">Sin productos.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
