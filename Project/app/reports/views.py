@@ -23,9 +23,15 @@ def _supervisor_required(view_func):
 
 @login_required
 @_supervisor_required
+def report_index(request):
+    """Página de inicio del módulo de reportes."""
+    return render(request, 'reports/index.html')
+
+
+@login_required
+@_supervisor_required
 def report_inventory(request):
-    """Reporte de inventario: stock, lotes o movimientos."""
-    tipo      = request.GET.get('tipo', '')       # stock | lotes | movimientos
+    tipo      = request.GET.get('tipo', '')
     date_from = request.GET.get('date_from', '')
     date_to   = request.GET.get('date_to', '')
     headers   = []
@@ -64,8 +70,7 @@ def report_inventory(request):
         for m in qs:
             rows.append([
                 m.date.strftime('%d/%m/%Y %H:%M'),
-                m.lot.product.name,
-                m.lot.pk,
+                m.lot.product.name, m.lot.pk,
                 m.get_movement_type_display(),
                 f'{m.quantity} {m.lot.product.unit}',
                 m.reason or '—',
@@ -80,8 +85,7 @@ def report_inventory(request):
 @login_required
 @_supervisor_required
 def report_tasks(request):
-    """Reporte de tareas: general, vencidas o resumen por cliente."""
-    tipo      = request.GET.get('tipo', '')       # general | vencidas | por_cliente
+    tipo      = request.GET.get('tipo', '')
     date_from = request.GET.get('date_from', '')
     date_to   = request.GET.get('date_to', '')
     client_id = request.GET.get('client', '')
