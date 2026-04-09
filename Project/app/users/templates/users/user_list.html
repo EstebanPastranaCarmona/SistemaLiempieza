@@ -4,7 +4,12 @@
 {% block body %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h4><i class="bi bi-people-fill me-2"></i>{{ title|default:"Usuarios Activos" }}</h4>
+        <h4><i class="bi bi-people-fill me-2"></i>
+            {% if active_filter == True %}Usuarios Activos
+            {% elif active_filter == False %}Usuarios Inactivos
+            {% else %}Todos los Usuarios
+            {% endif %}
+        </h4>
         <small class="opacity-75">Gestión de accesos y roles del personal</small>
     </div>
     <a href="{% url 'users:dashboard' %}" class="btn btn-sm btn-outline-light">
@@ -14,7 +19,7 @@
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <form method="GET" class="d-flex gap-2">
-        <input type="hidden" name="active" value="{{ request.GET.active|default:'true' }}">
+        <input type="hidden" name="active" value="{{ active_param }}">
         <select name="rol" class="form-select" onchange="this.form.submit()"
                 style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
                        color: white; border-radius: 10px; width: auto;">
@@ -27,19 +32,23 @@
             {% endfor %}
         </select>
         {% if rol_filter %}
-        <a href="?active={{ request.GET.active|default:'true' }}" class="btn-lc-outline">
+        <a href="?active={{ active_param }}" class="btn-lc-outline">
             <i class="bi bi-x-lg"></i>
         </a>
         {% endif %}
     </form>
     <div class="ms-auto d-flex gap-2">
-        <a href="?active=true" class="btn-lc-outline"
-           style="{% if active_filter %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+        <a href="?active=true{% if rol_filter %}&rol={{ rol_filter }}{% endif %}" class="btn-lc-outline"
+           style="{% if active_filter == True %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
             <i class="bi bi-person-check-fill me-1"></i>Activos
         </a>
-        <a href="?active=false" class="btn-lc-outline"
-           style="{% if not active_filter %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+        <a href="?active=false{% if rol_filter %}&rol={{ rol_filter }}{% endif %}" class="btn-lc-outline"
+           style="{% if active_filter == False %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
             <i class="bi bi-person-dash-fill me-1"></i>Inactivos
+        </a>
+        <a href="?active={% if rol_filter %}&rol={{ rol_filter }}{% endif %}" class="btn-lc-outline"
+           style="{% if active_filter == None %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+            <i class="bi bi-people me-1"></i>Todos
         </a>
         <a href="{% url 'users:user_create' %}" class="btn-lc">
             <i class="bi bi-person-plus-fill me-1"></i>Nuevo
@@ -96,7 +105,9 @@
             <tr>
                 <td colspan="6" class="text-center py-5" style="background:white; color:#888;">
                     <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                    No hay usuarios registrados.
+                    No hay usuarios
+                    {% if active_filter == True %}activos{% elif active_filter == False %}inactivos{% endif %}
+                    {% if rol_filter %}con ese rol{% endif %}.
                 </td>
             </tr>
             {% endfor %}
