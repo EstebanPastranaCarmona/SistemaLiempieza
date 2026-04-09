@@ -98,8 +98,35 @@ def dashboard(request):
 @login_required
 @admin_required
 def user_list(request):
-    users = User.objects.all().prefetch_related('groups').order_by('username')
-    return render(request, 'users/user_list.html', {'users': users})
+    # Leer filtros desde GET
+    active_param = request.GET.get('active', 'true')   # 'true' | 'false' | '' (todos)
+    rol_filter   = request.GET.get('rol', '')           # id del grupo o ''
+
+    # Filtro activo/inactivo
+    if active_param == 'true':
+        active_filter = True
+        users = User.objects.filter(is_active=True)
+    elif active_param == 'false':
+        active_filter = False
+        users = User.objects.filter(is_active=False)
+    else:
+        active_filter = None
+        users = User.objects.all()
+
+    # Filtro por rol (grupo)
+    if rol_filter:
+        users = users.filter(groups__id=rol_filter)
+
+    users = users.prefetch_related('groups').order_by('username')
+    grupos = Group.objects.all()
+
+    return render(request, 'users/user_list.html', {
+        'users':        users,
+        'grupos':       grupos,
+        'active_filter': active_filter,
+        'rol_filter':   rol_filter,
+        'active_param': active_param,
+    })
 
 
 @login_required
