@@ -12,13 +12,22 @@
     </a>
 </div>
 
-{% if user.is_admin %}
-<div class="d-flex mb-3 justify-content-end">
+<div class="d-flex justify-content-between align-items-center mb-3">
+    {# Filtro activos / archivados #}
+    <div class="btn-group" role="group">
+        <a href="?show=active" class="btn btn-sm {% if show != 'archived' %}btn-lc{% else %}btn-outline-secondary{% endif %}">
+            <i class="bi bi-check-circle me-1"></i>Activos
+        </a>
+        <a href="?show=archived" class="btn btn-sm {% if show == 'archived' %}btn-lc{% else %}btn-outline-secondary{% endif %}">
+            <i class="bi bi-archive me-1"></i>Archivados
+        </a>
+    </div>
+    {% if user.is_admin and show != 'archived' %}
     <a href="{% url 'inventory:product_create' %}" class="btn-lc">
         <i class="bi bi-plus-lg me-1"></i>Nuevo producto
     </a>
+    {% endif %}
 </div>
-{% endif %}
 
 <div class="table-wrapper">
     <table class="table table-lc table-hover mb-0">
@@ -27,8 +36,10 @@
                 <th><i class="bi bi-tag me-1"></i>Nombre</th>
                 <th><i class="bi bi-grid me-1"></i>Tipo</th>
                 <th><i class="bi bi-rulers me-1"></i>Unidad</th>
+                {% if show != 'archived' %}
                 <th><i class="bi bi-stack me-1"></i>Stock total</th>
                 <th><i class="bi bi-arrow-down-circle me-1"></i>Mínimo</th>
+                {% endif %}
                 <th><i class="bi bi-building me-1"></i>Proveedor</th>
                 <th><i class="bi bi-geo-alt me-1"></i>Ubicación almacén</th>
                 {% if user.is_admin %}
@@ -44,15 +55,21 @@
                     {% if product.id in low_stock_ids %}
                     <span class="badge bg-danger ms-1"><i class="bi bi-exclamation-triangle-fill"></i> Stock bajo</span>
                     {% endif %}
+                    {% if show == 'archived' %}
+                    <span class="badge bg-secondary ms-1"><i class="bi bi-archive-fill"></i> Archivado</span>
+                    {% endif %}
                 </td>
                 <td>{{ product.product_type }}</td>
                 <td>{{ product.unit }}</td>
+                {% if show != 'archived' %}
                 <td>{{ product.get_total_stock }}</td>
                 <td>{{ product.min_stock }}</td>
+                {% endif %}
                 <td class="text-muted">{{ product.supplier|default:"—" }}</td>
                 <td class="text-muted">{{ product.warehouse_location|default:"—" }}</td>
                 {% if user.is_admin %}
                 <td class="text-end">
+                    {% if show != 'archived' %}
                     <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-sm btn-outline-primary me-1">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
@@ -63,6 +80,16 @@
                             <i class="bi bi-archive-fill"></i>
                         </button>
                     </form>
+                    {% else %}
+                    <form method="POST" action="{% url 'inventory:product_toggle' product.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="?show=archived">
+                        <button type="submit" class="btn btn-sm btn-outline-success"
+                                onclick="return confirm('¿Desarchivar producto \"{{ product.name }}\"? Sus lotes siguen archivados y debés reactivarlos manualmente.')">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Desarchivar
+                        </button>
+                    </form>
+                    {% endif %}
                 </td>
                 {% endif %}
             </tr>
@@ -70,7 +97,11 @@
             <tr>
                 <td colspan="8" class="text-center py-5" style="background:white; color:#888;">
                     <i class="bi bi-boxes fs-3 d-block mb-2"></i>
+                    {% if show == 'archived' %}
+                    No hay productos archivados.
+                    {% else %}
                     No hay productos activos.
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
