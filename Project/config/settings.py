@@ -59,12 +59,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Base de datos: usa DATABASE_URL en produccion, SQLite en local
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    import dj_database_url
+# Base de datos: MySQL en produccion (variables de entorno), SQLite en local
+DB_NAME = os.environ.get('MYSQLDB')
+if DB_NAME:
     DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME':     DB_NAME,
+            'USER':     os.environ.get('MYSQLUSER', ''),
+            'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
+            'HOST':     os.environ.get('MYSQLHOST', '127.0.0.1'),
+            'PORT':     os.environ.get('MYSQLPORT', '3306'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
+        }
     }
 else:
     DATABASES = {
