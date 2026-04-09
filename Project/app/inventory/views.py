@@ -79,9 +79,12 @@ def lot_toggle_active(request, pk):
 def product_list(request):
     show = request.GET.get('show', 'active')
     if show == 'archived':
-        products     = Product.objects.filter(is_active=False)
+        products      = Product.objects.filter(is_active=False)
         low_stock_ids = []
-    else:
+    elif show == 'all':
+        products      = Product.objects.all()
+        low_stock_ids = [p.id for p in products if p.is_active and p.is_below_min_stock()]
+    else:  # 'active' (default)
         products      = Product.objects.filter(is_active=True)
         low_stock_ids = [p.id for p in products if p.is_below_min_stock()]
     return render(request, 'inventory/product_list.html', {
@@ -135,7 +138,7 @@ def product_toggle_active(request, pk):
             request,
             f'Producto "{product.name}" desarchivado. Podés reactivar sus lotes manualmente desde la sección de Lotes.'
         )
-        return redirect('inventory:product_list?show=archived')
+        return redirect(f"{{% url 'inventory:product_list' %}}?show=archived")
 
 
 # ── Movimientos ─────────────────────────────────────────────
