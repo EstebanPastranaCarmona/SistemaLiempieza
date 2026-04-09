@@ -25,6 +25,12 @@ class Product(models.Model):
         self.save()
         self.lots.filter(is_active=True).update(is_active=False)
 
+    def unarchive(self):
+        """Desarchiva el producto. Los lotes NO se reactivan automáticamente
+        para evitar reactivar lotes vencidos o inconsistentes."""
+        self.is_active = True
+        self.save()
+
     def __str__(self):
         return self.name
 
