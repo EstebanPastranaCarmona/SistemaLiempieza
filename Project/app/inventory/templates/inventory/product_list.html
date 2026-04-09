@@ -4,7 +4,12 @@
 {% block body %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h4><i class="bi bi-boxes me-2"></i>Productos</h4>
+        <h4><i class="bi bi-boxes me-2"></i>
+            {% if show == 'archived' %}Productos Archivados
+            {% elif show == 'all' %}Todos los Productos
+            {% else %}Productos Activos
+            {% endif %}
+        </h4>
         <small class="opacity-75">Catálogo de productos de limpieza</small>
     </div>
     <a href="{% url 'inventory:lot_list' %}" class="btn btn-sm btn-outline-light">
@@ -12,21 +17,26 @@
     </a>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    {# Filtro activos / archivados #}
-    <div class="btn-group" role="group">
-        <a href="?show=active" class="btn btn-sm {% if show != 'archived' %}btn-lc{% else %}btn-outline-secondary{% endif %}">
-            <i class="bi bi-check-circle me-1"></i>Activos
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="ms-auto d-flex gap-2">
+        <a href="?show=active" class="btn-lc-outline"
+           style="{% if show == 'active' or not show %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+            <i class="bi bi-check-circle-fill me-1"></i>Activos
         </a>
-        <a href="?show=archived" class="btn btn-sm {% if show == 'archived' %}btn-lc{% else %}btn-outline-secondary{% endif %}">
-            <i class="bi bi-archive me-1"></i>Archivados
+        <a href="?show=archived" class="btn-lc-outline"
+           style="{% if show == 'archived' %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+            <i class="bi bi-archive-fill me-1"></i>Archivados
         </a>
+        <a href="?show=all" class="btn-lc-outline"
+           style="{% if show == 'all' %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+            <i class="bi bi-boxes me-1"></i>Todos
+        </a>
+        {% if user.is_admin %}
+        <a href="{% url 'inventory:product_create' %}" class="btn-lc">
+            <i class="bi bi-plus-lg me-1"></i>Nuevo producto
+        </a>
+        {% endif %}
     </div>
-    {% if user.is_admin and show != 'archived' %}
-    <a href="{% url 'inventory:product_create' %}" class="btn-lc">
-        <i class="bi bi-plus-lg me-1"></i>Nuevo producto
-    </a>
-    {% endif %}
 </div>
 
 <div class="table-wrapper">
@@ -36,12 +46,11 @@
                 <th><i class="bi bi-tag me-1"></i>Nombre</th>
                 <th><i class="bi bi-grid me-1"></i>Tipo</th>
                 <th><i class="bi bi-rulers me-1"></i>Unidad</th>
-                {% if show != 'archived' %}
                 <th><i class="bi bi-stack me-1"></i>Stock total</th>
                 <th><i class="bi bi-arrow-down-circle me-1"></i>Mínimo</th>
-                {% endif %}
                 <th><i class="bi bi-building me-1"></i>Proveedor</th>
                 <th><i class="bi bi-geo-alt me-1"></i>Ubicación almacén</th>
+                <th><i class="bi bi-circle-fill me-1"></i>Estado</th>
                 {% if user.is_admin %}
                 <th class="text-end"><i class="bi bi-gear me-1"></i>Acciones</th>
                 {% endif %}
@@ -49,44 +58,45 @@
         </thead>
         <tbody>
             {% for product in products %}
-            <tr {% if product.id in low_stock_ids %}class="table-warning"{% endif %}>
+            <tr>
                 <td class="fw-semibold">
                     {{ product.name }}
                     {% if product.id in low_stock_ids %}
                     <span class="badge bg-danger ms-1"><i class="bi bi-exclamation-triangle-fill"></i> Stock bajo</span>
                     {% endif %}
-                    {% if show == 'archived' %}
-                    <span class="badge bg-secondary ms-1"><i class="bi bi-archive-fill"></i> Archivado</span>
-                    {% endif %}
                 </td>
                 <td>{{ product.product_type }}</td>
                 <td>{{ product.unit }}</td>
-                {% if show != 'archived' %}
                 <td>{{ product.get_total_stock }}</td>
                 <td>{{ product.min_stock }}</td>
-                {% endif %}
                 <td class="text-muted">{{ product.supplier|default:"—" }}</td>
                 <td class="text-muted">{{ product.warehouse_location|default:"—" }}</td>
+                <td>
+                    {% if product.is_active %}
+                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Activo</span>
+                    {% else %}
+                        <span class="badge bg-secondary"><i class="bi bi-archive me-1"></i>Archivado</span>
+                    {% endif %}
+                </td>
                 {% if user.is_admin %}
                 <td class="text-end">
-                    {% if show != 'archived' %}
-                    <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-sm btn-outline-primary me-1">
+                    {% if product.is_active %}
+                    <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-sm btn-lc-primary me-1">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                     <form method="POST" action="{% url 'inventory:product_toggle' product.pk %}" class="d-inline">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-outline-danger"
-                                onclick="return confirm('¿Archivar producto y todos sus lotes activos?')">
+                                onclick="return confirm('¿Archivar producto \"{{ product.name }}\" y todos sus lotes activos?')">
                             <i class="bi bi-archive-fill"></i>
                         </button>
                     </form>
                     {% else %}
                     <form method="POST" action="{% url 'inventory:product_toggle' product.pk %}" class="d-inline">
                         {% csrf_token %}
-                        <input type="hidden" name="next" value="?show=archived">
                         <button type="submit" class="btn btn-sm btn-outline-success"
-                                onclick="return confirm('¿Desarchivar producto \"{{ product.name }}\"? Sus lotes siguen archivados y debés reactivarlos manualmente.')">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>Desarchivar
+                                onclick="return confirm('¿Desarchivar \"{{ product.name }}\"? Sus lotes siguen archivados y debés reactivarlos manualmente.')">
+                            <i class="bi bi-arrow-counterclockwise"></i>
                         </button>
                     </form>
                     {% endif %}
@@ -95,13 +105,11 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" class="text-center py-5" style="background:white; color:#888;">
+                <td colspan="9" class="text-center py-5" style="background:white; color:#888;">
                     <i class="bi bi-boxes fs-3 d-block mb-2"></i>
-                    {% if show == 'archived' %}
-                    No hay productos archivados.
-                    {% else %}
-                    No hay productos activos.
-                    {% endif %}
+                    {% if show == 'archived' %}No hay productos archivados.
+                    {% elif show == 'all' %}No hay productos registrados.
+                    {% else %}No hay productos activos.{% endif %}
                 </td>
             </tr>
             {% endfor %}
