@@ -21,13 +21,13 @@ def supervisor_or_admin_required(view_func):
     return wrapper
 
 
-# ── Raíz: siempre redirige a lotes ───────────────────────────
+# ── Raíz: siempre redirige a lotes ──────────────────────────────
 @login_required
 def inventory_home(request):
     return redirect('inventory:lot_list')
 
 
-# ── Lotes ──────────────────────────────────────────────
+# ── Lotes ────────────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
@@ -72,16 +72,22 @@ def lot_toggle_active(request, pk):
     return redirect('inventory:lot_list')
 
 
-# ── Productos (secundario) ─────────────────────────────
+# ── Productos (secundario) ───────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
 def product_list(request):
-    products     = Product.objects.filter(is_active=True)
-    low_stock_ids = [p.id for p in products if p.is_below_min_stock()]
+    show = request.GET.get('show', 'active')
+    if show == 'archived':
+        products     = Product.objects.filter(is_active=False)
+        low_stock_ids = []
+    else:
+        products      = Product.objects.filter(is_active=True)
+        low_stock_ids = [p.id for p in products if p.is_below_min_stock()]
     return render(request, 'inventory/product_list.html', {
         'products':      products,
         'low_stock_ids': low_stock_ids,
+        'show':          show,
     })
 
 
@@ -112,18 +118,27 @@ def product_edit(request, pk):
 @admin_required
 @require_POST
 def product_toggle_active(request, pk):
-    """Archiva el producto Y todos sus lotes activos en cascada."""
-    product    = get_object_or_404(Product, pk=pk)
-    lots_count = product.lots.filter(is_active=True).count()
-    product.archive()
-    messages.success(
-        request,
-        f'Producto "{product.name}" archivado junto con {lots_count} lote(s) activo(s).'
-    )
-    return redirect('inventory:product_list')
+    """Toggle archivar/desarchivar. Al archivar, archiva lotes en cascada.
+    Al desarchivar, solo reactiva el producto; los lotes se gestionan manualmente."""
+    product = get_object_or_404(Product, pk=pk)
+    if product.is_active:
+        lots_count = product.lots.filter(is_active=True).count()
+        product.archive()
+        messages.success(
+            request,
+            f'Producto "{product.name}" archivado junto con {lots_count} lote(s) activo(s).'
+        )
+        return redirect('inventory:product_list')
+    else:
+        product.unarchive()
+        messages.success(
+            request,
+            f'Producto "{product.name}" desarchivado. Podés reactivar sus lotes manualmente desde la sección de Lotes.'
+        )
+        return redirect('inventory:product_list?show=archived')
 
 
-# ── Movimientos ──────────────────────────────────────────
+# ── Movimientos ─────────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
@@ -154,7 +169,7 @@ def movement_create(request):
     return render(request, 'inventory/movement_form.html', {'form': form, 'action': 'Registrar'})
 
 
-# ── Alertas ─────────────────────────────────────────────
+# ── Alertas ───────────────────────────────────────────────
 
 @login_required
 @supervisor_or_admin_required
