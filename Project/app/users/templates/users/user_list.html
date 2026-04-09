@@ -7,7 +7,7 @@
         <h4><i class="bi bi-people-fill me-2"></i>
             {% if active_filter == True %}Usuarios Activos
             {% elif active_filter == False %}Usuarios Inactivos
-            {% else %}Todos los Usuarios
+            {% else %}Usuarios Activos
             {% endif %}
         </h4>
         <small class="opacity-75">Gestión de accesos y roles del personal</small>
@@ -39,16 +39,12 @@
     </form>
     <div class="ms-auto d-flex gap-2">
         <a href="?active=true{% if rol_filter %}&rol={{ rol_filter }}{% endif %}" class="btn-lc-outline"
-           style="{% if active_filter == True %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+           style="{% if active_filter == True or active_filter == None %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
             <i class="bi bi-person-check-fill me-1"></i>Activos
         </a>
         <a href="?active=false{% if rol_filter %}&rol={{ rol_filter }}{% endif %}" class="btn-lc-outline"
            style="{% if active_filter == False %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
             <i class="bi bi-person-dash-fill me-1"></i>Inactivos
-        </a>
-        <a href="?active={% if rol_filter %}&rol={{ rol_filter }}{% endif %}" class="btn-lc-outline"
-           style="{% if active_filter == None %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
-            <i class="bi bi-people me-1"></i>Todos
         </a>
         <a href="{% url 'users:user_create' %}" class="btn-lc">
             <i class="bi bi-person-plus-fill me-1"></i>Nuevo
@@ -106,7 +102,7 @@
                 <td colspan="6" class="text-center py-5" style="background:white; color:#888;">
                     <i class="bi bi-inbox fs-3 d-block mb-2"></i>
                     No hay usuarios
-                    {% if active_filter == True %}activos{% elif active_filter == False %}inactivos{% endif %}
+                    {% if active_filter == False %}inactivos{% else %}activos{% endif %}
                     {% if rol_filter %}con ese rol{% endif %}.
                 </td>
             </tr>

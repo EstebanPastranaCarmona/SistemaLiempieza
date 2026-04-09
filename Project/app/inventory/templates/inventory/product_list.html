@@ -6,7 +6,6 @@
     <div>
         <h4><i class="bi bi-boxes me-2"></i>
             {% if show == 'archived' %}Productos Archivados
-            {% elif show == 'all' %}Todos los Productos
             {% else %}Productos Activos
             {% endif %}
         </h4>
@@ -20,16 +19,12 @@
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <div class="ms-auto d-flex gap-2">
         <a href="?show=active" class="btn-lc-outline"
-           style="{% if show == 'active' or not show %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
+           style="{% if show != 'archived' %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
             <i class="bi bi-check-circle-fill me-1"></i>Activos
         </a>
         <a href="?show=archived" class="btn-lc-outline"
            style="{% if show == 'archived' %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
             <i class="bi bi-archive-fill me-1"></i>Archivados
-        </a>
-        <a href="?show=all" class="btn-lc-outline"
-           style="{% if show == 'all' %}border-color: var(--lc-cyan); color: var(--lc-cyan);{% endif %}">
-            <i class="bi bi-boxes me-1"></i>Todos
         </a>
         {% if user.is_admin %}
         <a href="{% url 'inventory:product_create' %}" class="btn-lc">
@@ -79,9 +74,9 @@
                     {% endif %}
                 </td>
                 {% if user.is_admin %}
-                <td class="text-end">
+                <td class="text-end d-flex gap-1 justify-content-end">
                     {% if product.is_active %}
-                    <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-sm btn-lc-primary me-1">
+                    <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-sm btn-lc-primary">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                     <form method="POST" action="{% url 'inventory:product_toggle' product.pk %}" class="d-inline">
@@ -96,7 +91,7 @@
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-outline-success"
                                 onclick="return confirm('¿Desarchivar \"{{ product.name }}\"? Sus lotes siguen archivados y debés reactivarlos manualmente.')">
-                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <i class="bi bi-box-arrow-up"></i>
                         </button>
                     </form>
                     {% endif %}
@@ -108,7 +103,6 @@
                 <td colspan="9" class="text-center py-5" style="background:white; color:#888;">
                     <i class="bi bi-boxes fs-3 d-block mb-2"></i>
                     {% if show == 'archived' %}No hay productos archivados.
-                    {% elif show == 'all' %}No hay productos registrados.
                     {% else %}No hay productos activos.{% endif %}
                 </td>
             </tr>
