@@ -11,7 +11,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-uo$6@m_%tw_&_r6mn(%)g
 
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.up.railway.app',
+    '.railway.app',
+    '.railway.internal',
+]
+
+# Hosts adicionales desde variable de entorno (separados por coma)
+_extra_hosts = os.environ.get('ALLOWED_HOSTS', '')
+if _extra_hosts:
+    ALLOWED_HOSTS += [h.strip() for h in _extra_hosts.split(',') if h.strip()]
 
 INSTALLED_APPS = [
     'app.clients',
@@ -111,3 +122,8 @@ LOGOUT_REDIRECT_URL = 'users:login'
 AUTH_USER_MODEL = 'users.User'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.up.railway.app',
+    'https://*.railway.app',
+]
