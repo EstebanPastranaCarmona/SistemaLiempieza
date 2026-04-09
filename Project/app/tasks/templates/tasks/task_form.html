@@ -83,26 +83,42 @@
 </div>
 
 <script>
-document.getElementById('id_client').addEventListener('change', function() {
+// Base URL para el endpoint AJAX de ubicaciones
+// Se construye dinámicamente con el tag url de Django para evitar hardcodear rutas
+const LOCATIONS_URL_TEMPLATE = "{% url 'clients:locations_json' client_pk=0 %}".replace('/0/', '/{id}/');
+
+document.getElementById('id_client').addEventListener('change', function () {
     const clientId = this.value;
     const locationSelect = document.getElementById('id_location');
-    locationSelect.innerHTML = '<option value="">— Cargando... —</option>';
+
     if (!clientId) {
         locationSelect.innerHTML = '<option value="">— Seleccionar ubicación (opcional) —</option>';
         return;
     }
-    fetch(`/clientes/${clientId}/ubicaciones/json/`)
-        .then(r => r.json())
-        .then(data => {
-            locationSelect.innerHTML = '<option value="">— Seleccionar ubicación (opcional) —</option>';
-            data.forEach(loc => {
-                const opt = document.createElement('option');
-                opt.value = loc.id;
-                opt.textContent = loc.name;
-                locationSelect.appendChild(opt);
-            });
+
+    locationSelect.innerHTML = '<option value="">— Cargando... —</option>';
+
+    const url = LOCATIONS_URL_TEMPLATE.replace('{id}', clientId);
+
+    fetch(url)
+        .then(function (r) {
+            if (!r.ok) throw new Error('Error HTTP ' + r.status);
+            return r.json();
         })
-        .catch(() => {
+        .then(function (data) {
+            locationSelect.innerHTML = '<option value="">— Seleccionar ubicación (opcional) —</option>';
+            if (data.length === 0) {
+                locationSelect.innerHTML += '<option value="" disabled>Sin ubicaciones activas</option>';
+            } else {
+                data.forEach(function (loc) {
+                    const opt = document.createElement('option');
+                    opt.value = loc.id;
+                    opt.textContent = loc.name;
+                    locationSelect.appendChild(opt);
+                });
+            }
+        })
+        .catch(function () {
             locationSelect.innerHTML = '<option value="">— Error al cargar ubicaciones —</option>';
         });
 });
