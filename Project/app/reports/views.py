@@ -40,12 +40,12 @@ def index(request):
     expiring_lots = Lot.objects.filter(is_active=True, expiration_date__lte=today + timezone.timedelta(days=30)).count()
     expired_lots  = Lot.objects.filter(is_active=True, expiration_date__lt=today).count()
 
-    # KPIs de tareas
-    total_tasks     = Task.objects.count()
-    validated_tasks = Task.objects.filter(status=Task.VALIDATED).count()
-    pending_review  = Task.objects.filter(status=Task.PENDING_REVIEW).count()
+    # KPIs de tareas (solo de clientes activos)
+    total_tasks     = Task.objects.filter(client__is_active=True).count()
+    validated_tasks = Task.objects.filter(client__is_active=True, status=Task.VALIDATED).count()
+    pending_review  = Task.objects.filter(client__is_active=True, status=Task.PENDING_REVIEW).count()
     overdue_tasks   = [
-        t for t in Task.objects.filter(status__in=[Task.PENDING, Task.IN_PROGRESS])
+        t for t in Task.objects.filter(client__is_active=True, status__in=[Task.PENDING, Task.IN_PROGRESS])
         if t.is_overdue()
     ]
 
@@ -94,7 +94,12 @@ def inventario(request):
 @_require_supervisor
 def tareas(request):
     from app.tasks.models import Task
-    tasks = Task.objects.all().select_related('client', 'location', 'assigned_to', 'created_by')
+    from app.clients.models import Client
+
+    # Solo tareas de clientes activos
+    tasks = Task.objects.filter(
+        client__is_active=True
+    ).select_related('client', 'location', 'assigned_to', 'created_by')
 
     # Filtros
     status_filter = request.GET.get('status', '')
@@ -134,7 +139,6 @@ def tareas(request):
             ])
         return response
 
-    from app.clients.models import Client
     context = {
         'tasks':          tasks,
         'status_choices': Task.STATUS_CHOICES,
